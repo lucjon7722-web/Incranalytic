@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$Compiler)
+param([Parameter(Mandatory=$true)][string]$Compiler, [switch]$IncludeTestInstaller)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $workspace = Split-Path -Parent $repo
@@ -22,4 +22,8 @@ $entries += 'Source: "' + $manifest + '"; DestDir: "{app}"; Flags: ignoreversion
 $entries | Set-Content -LiteralPath (Join-Path $repo 'installer\payload.iss') -Encoding utf8
 & $Compiler (Join-Path $repo 'installer\Incranalytic.iss')
 if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed' }
+if ($IncludeTestInstaller) {
+    & $Compiler /DTestBuild=1 (Join-Path $repo 'installer\Incranalytic.iss')
+    if ($LASTEXITCODE -ne 0) { throw 'Isolated test installer compilation failed' }
+}
 Write-Output "Published $($runtime.Count) private runtime files. Stage: $stage"

@@ -58,6 +58,8 @@ Invalid names, missing inputs, circular dependencies, and conflicting units need
 
 ## Confirmed base decisions
 
+The primary editing surface is now Workspace: a large grid for placing and wiring Input/Module/Previous-step/Output blocks. Creators write their own conditional rules in IFCLOUD, a bounded custom numeric language with C#-style declarations, assignments and if/else. It has a built-in syntax index. A module execution trace drives the Why this number inspector. Groups, source-module templates and reusable system files support larger projects. Searchable Values browsing remains a later priority. Interface/setup refinement follows this authoring foundation.
+
 - C# for Unity is the first code export target; the base studio imports its own editable `.incr` format.
 - Values is a blank sheet of user-defined symbols and their project-specific meanings. No letter has a built-in game meaning.
 - Users choose a fixed interval and whether gain formulas represent per-second rates or per-tick increments.

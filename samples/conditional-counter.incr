@@ -1,0 +1,65 @@
+{
+  "FormatVersion": 2,
+  "Precision": 34,
+  "Interval": 1,
+  "PerSecond": true,
+  "Values": [],
+  "Workspace": {
+    "Nodes": [
+      {
+        "Id": "7c9a8972ab09446e9b508d32f7c7b0ab",
+        "Kind": "Previous",
+        "Title": "Previous total",
+        "Group": "Counter",
+        "X": 0,
+        "Y": 0,
+        "Literal": "0",
+        "ValueSymbol": "",
+        "Code": "input value;\noutput result;\n\nif (value \u003E= 10) {\n    result = value * 2;\n} else {\n    result = value;\n}\n"
+      },
+      {
+        "Id": "247bc9a109ee48a1a286551facc0d554",
+        "Kind": "Module",
+        "Title": "Conditional increment",
+        "Group": "Counter",
+        "X": 340,
+        "Y": 0,
+        "Literal": "1",
+        "ValueSymbol": "",
+        "Code": "input previous;\noutput total;\n\n// A custom rule: increment until the total reaches 10.\nif (previous \u003C 10) {\n    total = previous \u002B 1;\n} else {\n    total = previous;\n}\n"
+      },
+      {
+        "Id": "e4cbc25e56dd408fac8b22a2e8865b4e",
+        "Kind": "Output",
+        "Title": "Total",
+        "Group": "Counter",
+        "X": 680,
+        "Y": 0,
+        "Literal": "1",
+        "ValueSymbol": "",
+        "Code": "input value;\noutput result;\n\nif (value \u003E= 10) {\n    result = value * 2;\n} else {\n    result = value;\n}\n"
+      }
+    ],
+    "Edges": [
+      {
+        "From": "7c9a8972ab09446e9b508d32f7c7b0ab",
+        "FromPort": "value",
+        "To": "247bc9a109ee48a1a286551facc0d554",
+        "ToPort": "previous"
+      },
+      {
+        "From": "247bc9a109ee48a1a286551facc0d554",
+        "FromPort": "total",
+        "To": "7c9a8972ab09446e9b508d32f7c7b0ab",
+        "ToPort": "next"
+      },
+      {
+        "From": "247bc9a109ee48a1a286551facc0d554",
+        "FromPort": "total",
+        "To": "e4cbc25e56dd408fac8b22a2e8865b4e",
+        "ToPort": "value"
+      }
+    ],
+    "Modules": []
+  }
+}

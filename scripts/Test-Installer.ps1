@@ -1,11 +1,12 @@
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $workspace = Split-Path -Parent $repo
-$registry = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{82D861BC-A02B-4C41-B9EA-2878D66918B3}_is1'
+$registry = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{9B32C142-B7D2-4635-A0D8-19D029D8D8C7}_is1'
 if (Test-Path $registry) { throw 'A copy is already registered. Tests will not overwrite an existing installation.' }
 $target = Join-Path $workspace ('work\installer-test-' + [Guid]::NewGuid().ToString('N'))
-$setup = Join-Path $workspace 'outputs\Incranalytic-0.2.0-Setup.exe'
-$report = Join-Path $workspace 'outputs\installer-verification.txt'
+$setup = Join-Path $workspace 'work\test-installer\Incranalytic-0.3.0-TestSetup.exe'
+$report = Join-Path $workspace 'outputs\installer-verification-0.3.txt'
+Set-Content -LiteralPath $report -Value 'Isolated test AppId: existing user installation is preserved.'
 function Check([bool]$ok, [string]$message) { if (!$ok) { throw $message }; "PASS: $message" | Tee-Object -FilePath $report -Append }
 function Install {
     $arguments = '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /NOICONS /DIR="' + $target + '"'
@@ -20,13 +21,13 @@ function Uninstall([bool]$keep) {
     Start-Sleep -Seconds 2
 }
 Install
-Check ((Get-ItemProperty $registry).DisplayVersion -eq '0.2.0') 'Windows Installed Apps registration is correct'
+Check ((Get-ItemProperty $registry).DisplayVersion -eq '0.3.0') 'Windows Installed Apps registration is correct'
 Check (Test-Path (Join-Path $target 'coreclr.dll')) 'Private runtime is installed alongside the application'
 Set-Content -LiteralPath (Join-Path $target 'keep-project.incr') -Value 'user-project-sentinel'
-$uiReport = Join-Path $workspace 'outputs\installed-studio-verification.txt'
+$uiReport = Join-Path $workspace 'outputs\installed-workspace-verification.txt'
 $p = Start-Process -FilePath (Join-Path $target 'Incranalytic.exe') -ArgumentList ('--verify-studio "' + $uiReport + '"') -PassThru -Wait
 Check ($p.ExitCode -eq 0) 'Installed application completes its studio integration checks'
-Check ((Get-Content -LiteralPath $uiReport | Where-Object { $_ -like 'PASS:*' }).Count -eq 9) 'Blank Values, binding, simulation controls, views, and embedded Unity export work after installation'
+Check ((Get-Content -LiteralPath $uiReport | Where-Object { $_ -like 'PASS:*' }).Count -eq 16) 'Values, Workspace gestures, IFCLOUD, simulation controls, views, undo and embedded Unity export work after installation'
 Uninstall $true
 Check (!(Test-Path (Join-Path $target 'Incranalytic.exe'))) 'Uninstall removes the application when dependencies are retained'
 Check (Test-Path (Join-Path $target 'coreclr.dll')) 'Keep-dependencies choice retains the private runtime'

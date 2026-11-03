@@ -1,17 +1,24 @@
-#define AppVersion "0.2.0"
+#define AppVersion "0.3.0"
 [Setup]
+#ifdef TestBuild
+AppId={{9B32C142-B7D2-4635-A0D8-19D029D8D8C7}
+OutputDir=..\..\work\test-installer
+OutputBaseFilename=Incranalytic-0.3.0-TestSetup
+DefaultGroupName=Incranalytic Test
+#else
 AppId={{82D861BC-A02B-4C41-B9EA-2878D66918B3}
+OutputDir=..\..\outputs
+OutputBaseFilename=Incranalytic-0.3.0-Setup
+DefaultGroupName=Incranalytic
+#endif
 AppName=Incranalytic Studio
 AppVersion={#AppVersion}
 AppPublisher=Incranalytic Project
 DefaultDirName={localappdata}\Programs\Incranalytic
-DefaultGroupName=Incranalytic
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
-OutputDir=..\..\outputs
-OutputBaseFilename=Incranalytic-0.2.0-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -33,6 +40,8 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 #include "payload.iss"
 Source: "Terms.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\studio-guide.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\IFCLOUD.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\samples\conditional-counter.incr"; DestDir: "{app}\examples"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Incranalytic Studio"; Filename: "{app}\Incranalytic.exe"

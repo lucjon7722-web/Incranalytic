@@ -1,4 +1,4 @@
-INCRANALYTIC STUDIO 0.2 - DEVELOPMENT PREVIEW
+INCRANALYTIC STUDIO 0.3 - DEVELOPMENT PREVIEW
 
 Incranalytic supports education and human-authored system design. You are responsible for your use, your authored rules, and the permissions required for imported material and distributed exports.
 

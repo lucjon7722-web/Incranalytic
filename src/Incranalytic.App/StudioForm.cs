@@ -16,7 +16,10 @@ public sealed class StudioForm : Form
     readonly ComboBox mode = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 205 };
     readonly ComboBox plotted = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 170 };
     readonly TabControl tabs = new() { Dock = DockStyle.Fill };
-    readonly ToolStripStatusLabel status = new("New project — define your symbols in Values.");
+    readonly WorkspacePane workspace = new();
+    sealed record Channel(string Key, string Label) { public override string ToString() => Label; }
+    readonly List<Channel> channels = [];
+    readonly ToolStripStatusLabel status = new("New project — add blocks in Workspace or define symbols in Values.");
     readonly System.Windows.Forms.Timer timer = new() { Interval = 50 };
     readonly Stopwatch clock = new();
     readonly Panel graph = new() { Dock = DockStyle.Fill, BackColor = Color.White };
@@ -29,7 +32,7 @@ public sealed class StudioForm : Form
 
     public StudioForm()
     {
-        Text = "Incranalytic Studio 0.2 — Untitled"; Width = 1350; Height = 880; MinimumSize = new(1000, 660);
+        Text = "Incranalytic Studio 0.3 — Untitled"; Width = 1450; Height = 900; MinimumSize = new(1100, 700);
         StartPosition = FormStartPosition.CenterScreen; Font = new("Segoe UI", 9); BackColor = Color.FromArgb(230, 228, 214);
         var menu = new MenuStrip { BackColor = BackColor, RenderMode = ToolStripRenderMode.System };
         var file = new ToolStripMenuItem("&File");
@@ -41,12 +44,13 @@ public sealed class StudioForm : Form
         file.DropDownItems.Add(new ToolStripSeparator()); file.DropDownItems.Add("Exit", null, (_, _) => Close());
         var help = new ToolStripMenuItem("&Help");
         help.DropDownItems.Add("Terms and privacy", null, (_, _) => MessageBox.Show(this, Terms, "Incranalytic terms"));
-        help.DropDownItems.Add("About", null, (_, _) => MessageBox.Show(this, "Incranalytic Studio 0.2\nA base studio for human-authored incremental systems.\nNo AI service or account is used by this software.\nDevelopment has used AI assistance.\n\nWindows x64 development preview; installer is unsigned.", "About Incranalytic"));
+        help.DropDownItems.Add("About", null, (_, _) => MessageBox.Show(this, "Incranalytic Studio 0.3\nWorkspace and IFCLOUD for human-authored incremental systems.\nNo AI service or account is used by this software.\nDevelopment has used AI assistance.\n\nWindows x64 development preview; installer is unsigned.", "About Incranalytic"));
         menu.Items.AddRange([file, help]);
         var toolbar = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden, BackColor = Color.FromArgb(239, 237, 225), RenderMode = ToolStripRenderMode.System, Padding = new(5) };
         toolbar.Items.Add("New", null, (_, _) => NewProject()); toolbar.Items.Add("Import…", null, (_, _) => Open()); toolbar.Items.Add("Save…", null, (_, _) => Save());
         toolbar.Items.Add(new ToolStripSeparator()); toolbar.Items.Add("Run", null, (_, _) => Run()); toolbar.Items.Add("Pause", null, (_, _) => Pause()); toolbar.Items.Add("Step", null, (_, _) => Step()); toolbar.Items.Add("Reset", null, (_, _) => Reset());
         toolbar.Items.Add(new ToolStripSeparator()); toolbar.Items.Add("Unity C#…", null, (_, _) => ExportUnity());
+        toolbar.Items.Add("Validate", null, (_, _) => Try(() => { Collect().Validate(); status.Text = "Valid: code, ports, connections and first-tick calculations checked."; }));
         var config = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 45, Padding = new(8), WrapContents = false, BackColor = BackColor };
         mode.Items.AddRange(["Per second: gain × interval", "Per tick: gain per interval"]); mode.SelectedIndex = 0;
         config.Controls.AddRange([new Label { Text = "Interval (seconds)", AutoSize = true, Padding = new(0, 5, 0, 0) }, interval, mode, new Label { Text = "Significant digits", AutoSize = true, Padding = new(10, 5, 0, 0) }, precision]);
@@ -65,6 +69,8 @@ public sealed class StudioForm : Form
         editor.DataError += (_, e) => { e.ThrowException = false; status.Text = "Could not apply that edit."; };
         valuesTab.Controls.Add(editor); valuesTab.Controls.Add(intro); valuesTab.Controls.Add(valueBar);
         var resultsTab = new TabPage("Simulation table"); resultsTab.Controls.Add(history);
+        history.VirtualMode = true;
+        history.CellValueNeeded += (_, e) => { if (e.RowIndex < samples.Count) e.Value = e.ColumnIndex == 0 ? samples[e.RowIndex].Time : samples[e.RowIndex].State[channels[e.ColumnIndex - 1].Key].ToString(); };
         var graphTab = new TabPage("Graph"); var graphBar = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 45, Padding = new(8) };
         graphBar.Controls.AddRange([new Label { Text = "Symbol", AutoSize = true, Padding = new(0, 5, 0, 0) }, plotted, new Label { Text = "Positive values only · Y = log10(value) · X = recorded sample", AutoSize = true, Padding = new(8, 5, 0, 0) }]);
         graphTab.Controls.Add(graph); graphTab.Controls.Add(graphBar); graph.Paint += PaintGraph; plotted.SelectedIndexChanged += (_, _) => graph.Invalidate();
@@ -74,16 +80,21 @@ public sealed class StudioForm : Form
         var reference = new RichTextBox { Dock = DockStyle.Fill, ReadOnly = true, BackColor = Color.White, Font = new("Consolas", 11), Text = Guide };
         var find = new TextBox { Dock = DockStyle.Top, PlaceholderText = "Search the index…" }; find.TextChanged += (_, _) => { reference.Select(0, 0); if (find.Text.Length > 0) reference.Find(find.Text, RichTextBoxFinds.None); };
         referenceTab.Controls.Add(reference); referenceTab.Controls.Add(find);
-        tabs.TabPages.AddRange([valuesTab, resultsTab, graphTab, nodeTab, referenceTab]); tabs.SelectedIndexChanged += (_, _) => diagram.Invalidate();
+        var workspaceTab = new TabPage("Workspace"); workspaceTab.Controls.Add(workspace); workspace.Changed += MarkDirty; workspace.Message += s => status.Text = s;
+        var ifcloudTab = new TabPage("IFCLOUD Index");
+        var ifcloudReference = new RichTextBox { Dock = DockStyle.Fill, ReadOnly = true, BackColor = Color.White, Font = new("Consolas", 10), Text = IfcloudGuide.Text, DetectUrls = false };
+        var codeSearch = new TextBox { Dock = DockStyle.Top, PlaceholderText = "Search IFCLOUD syntax or examples…" }; codeSearch.TextChanged += (_, _) => { ifcloudReference.Select(0, 0); if (codeSearch.Text.Length > 0) ifcloudReference.Find(codeSearch.Text, RichTextBoxFinds.None); };
+        ifcloudTab.Controls.Add(ifcloudReference); ifcloudTab.Controls.Add(codeSearch);
+        tabs.TabPages.AddRange([workspaceTab, valuesTab, resultsTab, graphTab, nodeTab, referenceTab, ifcloudTab]); tabs.SelectedIndexChanged += (_, _) => diagram.Invalidate();
         var footer = new StatusStrip(); footer.Items.Add(status);
         Controls.Add(tabs); Controls.Add(config); Controls.Add(toolbar); Controls.Add(menu); Controls.Add(footer); MainMenuStrip = menu;
         interval.ValueChanged += (_, _) => MarkDirty(); precision.ValueChanged += (_, _) => MarkDirty(); mode.SelectedIndexChanged += (_, _) => MarkDirty();
         timer.Tick += (_, _) =>
         {
-            accumulator += clock.Elapsed.TotalSeconds; clock.Restart(); int count = 0;
+            accumulator += clock.Elapsed.TotalSeconds; clock.Restart(); int count = 0; bool failed = false;
             while (accumulator >= (double)interval.Value && count++ < 200)
-            { accumulator -= (double)interval.Value; if (!Advance(false)) break; }
-            if (count > 0) RefreshResults();
+            { accumulator -= (double)interval.Value; if (!Advance(false)) { failed = true; break; } }
+            if (count > 0 && !failed) RefreshResults();
         };
         FormClosing += (_, e) => { Pause(); if (!ConfirmDiscard()) e.Cancel = true; };
         FormClosed += (_, _) => timer.Dispose();
@@ -96,14 +107,15 @@ public sealed class StudioForm : Form
     {
         editor.EndEdit(); BindingContext?[values]?.EndCurrentEdit();
         return new StudioProject { Precision = (int)precision.Value, Interval = interval.Value, PerSecond = mode.SelectedIndex == 0,
-            Values = values.Select(v => new StudioValue { Symbol = v.Symbol ?? "", Name = v.Name ?? "", Initial = v.Initial ?? "0", Formula = v.Formula ?? "0" }).ToList() };
+            Values = values.Select(v => new StudioValue { Symbol = v.Symbol ?? "", Name = v.Name ?? "", Initial = v.Initial ?? "0", Formula = v.Formula ?? "0" }).ToList(), Workspace = WorkspaceFiles.Clone(workspace.Graph) };
     }
     void SetProject(StudioProject p, string? path)
     {
         Pause(); session = null; loading = true; values = new BindingList<StudioValue>(p.Values); editor.DataSource = values;
         precision.Value = p.Precision; interval.Value = p.Interval; mode.SelectedIndex = p.PerSecond ? 0 : 1; loading = false;
+        workspace.SetGraph(p.Workspace);
         Unlock(); samples.Clear(); history.Rows.Clear(); history.Columns.Clear(); plotted.Items.Clear(); projectPath = path; dirty = false;
-        Text = "Incranalytic Studio 0.2 — " + (path == null ? "Untitled" : Path.GetFileName(path)); status.Text = "Ready — symbols belong to this project."; diagram.Invalidate(); graph.Invalidate();
+        Text = "Incranalytic Studio 0.3 — " + (path == null ? "Untitled" : Path.GetFileName(path)); status.Text = "Ready — create blocks in Workspace or define project symbols in Values."; diagram.Invalidate(); graph.Invalidate();
     }
     void NewProject() { Pause(); if (ConfirmDiscard()) SetProject(new StudioProject(), null); }
     void Example()
@@ -120,16 +132,19 @@ public sealed class StudioForm : Form
     void Save()
     {
         Pause(); using var d = new SaveFileDialog { Filter = "Incranalytic project|*.incr", FileName = projectPath ?? "My system.incr" };
-        if (d.ShowDialog(this) == DialogResult.OK) Try(() => { Collect().Save(d.FileName); projectPath = d.FileName; dirty = false; Text = "Incranalytic Studio 0.2 — " + Path.GetFileName(projectPath); status.Text = "Project saved."; });
+        if (d.ShowDialog(this) == DialogResult.OK) Try(() => { Collect().Save(d.FileName); projectPath = d.FileName; dirty = false; Text = "Incranalytic Studio 0.3 — " + Path.GetFileName(projectPath); status.Text = "Project saved, including workspace layout and code drafts."; });
     }
     void EnsureSession()
     {
         if (session != null) return;
-        var p = Collect(); p.Validate(); if (p.Values.Count == 0) throw new InvalidOperationException("Add at least one symbol to Values first.");
+        var p = Collect(); p.Validate(); if (p.Values.Count == 0 && p.Workspace.Nodes.Count == 0) throw new InvalidOperationException("Add a workspace block or define a Values symbol first.");
         session = new StudioSession(p); samples.Clear(); history.Columns.Clear(); history.Rows.Clear(); plotted.Items.Clear();
         history.Columns.Add("time", "Elapsed seconds");
-        foreach (var v in p.Values) { history.Columns.Add(v.Symbol, v.Symbol + (v.Name.Length > 0 ? " — " + v.Name : "")); plotted.Items.Add(v.Symbol); }
-        plotted.SelectedIndex = 0; editor.ReadOnly = true; editor.AllowUserToAddRows = false; editor.AllowUserToDeleteRows = false; interval.Enabled = precision.Enabled = mode.Enabled = false;
+        channels.Clear();
+        foreach (var v in p.Values) channels.Add(new(v.Symbol, v.Symbol + (v.Name.Length > 0 ? " — " + v.Name : "")));
+        foreach (var n in p.Workspace.Nodes.Where(n => n.Kind == "Output")) channels.Add(new("@" + n.Id, "Workspace: " + n.Title));
+        foreach (var channel in channels) { history.Columns.Add(channel.Key, channel.Label); history.Columns[^1].SortMode = DataGridViewColumnSortMode.NotSortable; plotted.Items.Add(channel); }
+        if (plotted.Items.Count > 0) plotted.SelectedIndex = 0; workspace.SetEditable(false); editor.ReadOnly = true; editor.AllowUserToAddRows = false; editor.AllowUserToDeleteRows = false; interval.Enabled = precision.Enabled = mode.Enabled = false;
         Record(); RefreshResults();
     }
     void Run() { Try(() => { EnsureSession(); accumulator = 0; clock.Restart(); timer.Start(); status.Text = "Running — Pause stops time; Reset unlocks editing."; }); }
@@ -142,22 +157,25 @@ public sealed class StudioForm : Form
     }
     void Record()
     {
-        samples.Add((session!.Elapsed.ToString(), new Dictionary<string, ScientificNumber>(session.State)));
-        if (samples.Count > 2001) samples.RemoveAt(0);
+        samples.Add((session!.Elapsed + (session.Ticks == 0 && session.Project.Workspace.Nodes.Count > 0 ? " (preview)" : ""), session.DisplayState()));
+        int limit = Math.Min(2001, Math.Max(20, 100000 / Math.Max(1, channels.Count)));
+        if (samples.Count > limit) samples.RemoveAt(0);
     }
     void RefreshResults()
     {
         if (session == null) return;
-        history.Rows.Clear(); foreach (var sample in samples) history.Rows.Add(new[] { sample.Time }.Concat(session.Project.Values.Select(v => sample.State[v.Symbol].ToString())).Cast<object>().ToArray());
-        status.Text = $"{(timer.Enabled ? "Running" : "Paused")} · {session.Ticks} ticks · elapsed {session.Elapsed} seconds · {samples.Count} retained samples (maximum 2,001). Reset to edit.";
+        history.RowCount = samples.Count; history.Invalidate();
+        status.Text = $"{(timer.Enabled ? "Running" : "Paused")} · {session.Ticks} ticks · elapsed {session.Elapsed} seconds · {samples.Count} retained samples. Reset to edit.";
+        workspace.ShowEvaluation(session.LastWorkspace, session.Ticks);
         graph.Invalidate();
     }
-    void Unlock() { editor.ReadOnly = false; editor.AllowUserToAddRows = editor.AllowUserToDeleteRows = true; interval.Enabled = precision.Enabled = mode.Enabled = true; }
-    void Reset() { Pause(); session = null; samples.Clear(); history.Rows.Clear(); Unlock(); graph.Invalidate(); status.Text = "Reset to initial conditions — editing unlocked."; }
+    void Unlock() { workspace.SetEditable(true); editor.ReadOnly = false; editor.AllowUserToAddRows = editor.AllowUserToDeleteRows = true; interval.Enabled = precision.Enabled = mode.Enabled = true; }
+    void Reset() { Pause(); session = null; samples.Clear(); history.Rows.Clear(); Unlock(); workspace.ShowEvaluation(null, 0); graph.Invalidate(); status.Text = "Reset to initial conditions — editing unlocked."; }
     void PaintGraph(object? sender, PaintEventArgs e)
     {
         var g = e.Graphics; g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        if (samples.Count < 2 || plotted.SelectedItem is not string symbol) { g.DrawString("Run or Step a system to plot its values.", Font, Brushes.DimGray, 30, 30); return; }
+        if (samples.Count < 2 || plotted.SelectedItem is not Channel selected) { g.DrawString("Run or Step a system to plot its values. Use an Output block to record workspace results.", Font, Brushes.DimGray, 30, 30); return; }
+        string symbol = selected.Key;
         var points = samples.Select((s, i) => (Index: i, Value: s.State[symbol].PlotLog())).Where(p => double.IsFinite(p.Value)).ToArray();
         if (points.Length < 2) { g.DrawString("Need two positive samples within log10 plotting range ±1,000,000. All values remain in the table.", Font, Brushes.DimGray, 30, 30); return; }
         float w = Math.Max(1, graph.Width - 150), h = Math.Max(1, graph.Height - 110); double lo = points.Min(p => p.Value), hi = points.Max(p => p.Value); if (hi == lo) hi = lo + 1;
@@ -166,7 +184,7 @@ public sealed class StudioForm : Form
         using var pen = new Pen(Color.FromArgb(35, 90, 135), 2);
         PointF? previous = null; int prevIndex = -2;
         foreach (var p in points) { var point = new PointF(100 + w * p.Index / (samples.Count - 1), 35 + h * (float)((hi - p.Value) / (hi - lo))); if (previous.HasValue && p.Index == prevIndex + 1) g.DrawLine(pen, previous.Value, point); previous = point; prevIndex = p.Index; }
-        g.DrawString($"{symbol} · log10(value) · zero, negative and out-of-range samples omitted", Font, Brushes.Black, 100, h + 50);
+        g.DrawString($"{selected.Label} · log10(value) · zero, negative and out-of-range samples omitted", Font, Brushes.Black, 100, h + 50);
     }
     void PaintDiagram(object? sender, PaintEventArgs e)
     {
@@ -175,8 +193,9 @@ public sealed class StudioForm : Form
         if (list.Count == 0) { g.DrawString("Define symbols in Values, then connect them through gain formulas.", Font, Brushes.DimGray, 30, 30); return; }
         Rectangle Box(int i) => new(40 + i % 3 * 290, 40 + i / 3 * 130, 230, 75);
         using var arrow = new Pen(Color.SlateGray, 1.5f) { CustomEndCap = new System.Drawing.Drawing2D.AdjustableArrowCap(4, 5) };
-        for (int i = 0; i < list.Count; i++) for (int j = 0; j < list.Count; j++) if (Regex.IsMatch(list[i].Formula ?? "", @"\b" + Regex.Escape(list[j].Symbol) + @"\b") && list[j].Symbol.Length > 0)
-        { var from = Box(j); var to = Box(i); if (i != j) g.DrawLine(arrow, from.Right, from.Top + 37, to.Left, to.Top + 37); }
+        var symbols = list.Select((v, i) => (v.Symbol, Index: i)).Where(v => !string.IsNullOrEmpty(v.Symbol)).GroupBy(v => v.Symbol).ToDictionary(group => group.Key, group => group.First().Index);
+        for (int i = 0; i < list.Count; i++) foreach (string reference in Regex.Matches(list[i].Formula ?? "", "[A-Za-z_][A-Za-z0-9_]*").Select(m => m.Value).Distinct())
+        { if (symbols.TryGetValue(reference, out int j) && i != j) { var from = Box(j); var to = Box(i); g.DrawLine(arrow, from.Right, from.Top + 37, to.Left, to.Top + 37); } }
         for (int i = 0; i < list.Count; i++) { var b = Box(i); g.FillRectangle(Brushes.Beige, b); g.DrawRectangle(Pens.SlateGray, b); g.DrawString(list[i].Symbol + " — " + list[i].Name + "\nGain: " + list[i].Formula, Font, Brushes.Black, new RectangleF(b.X + 7, b.Y + 7, b.Width - 14, b.Height - 14)); }
     }
     void Connect()
@@ -199,37 +218,49 @@ public sealed class StudioForm : Form
         if (d.ShowDialog(this) == DialogResult.OK) Try(() =>
         {
             string Q(string s) => "\"" + (s.StartsWith('=') || s.StartsWith('+') || s.StartsWith('@') ? "'" : "") + s.Replace("\"", "\"\"") + "\"";
-            File.WriteAllLines(d.FileName, new[] { "elapsed_seconds," + string.Join(",", session.Project.Values.Select(v => Q(v.Symbol))) }.Concat(samples.Select(s => Q(s.Time) + "," + string.Join(",", session.Project.Values.Select(v => Q(s.State[v.Symbol].ToString())))))); status.Text = "Simulation table exported.";
+            File.WriteAllLines(d.FileName, new[] { "elapsed_seconds," + string.Join(",", channels.Select(v => Q(v.Label))) }.Concat(samples.Select(s => Q(s.Time) + "," + string.Join(",", channels.Select(v => Q(s.State[v.Key].ToString())))))); status.Text = "Simulation table exported.";
         });
     }
     void ExportUnity()
     {
         Pause(); using var d = new FolderBrowserDialog { Description = "Choose a parent folder for a new Unity export" };
-        if (d.ShowDialog(this) == DialogResult.OK) Try(() => { var p = Collect(); p.Validate(); if (p.Values.Count == 0) throw new InvalidOperationException("Define some values first."); string folder = Path.Combine(d.SelectedPath, "Incranalytic-Unity-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff")); UnityExport.Write(folder, p, ExportRuntime()); status.Text = "Unity scripts exported: " + folder; });
+        if (d.ShowDialog(this) == DialogResult.OK) Try(() => { var p = Collect(); p.Validate(); if (p.Values.Count == 0 && p.Workspace.Nodes.Count == 0) throw new InvalidOperationException("Create a workspace or define values first."); string folder = Path.Combine(d.SelectedPath, "Incranalytic-Unity-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff")); UnityExport.Write(folder, p, ExportRuntime(), ExportRuntime("Ifcloud.cs"), ExportRuntime("WorkspaceRuntime.cs")); status.Text = "Unity scripts exported: " + folder; });
     }
-    static string ExportRuntime()
+    static string ExportRuntime(string source = "ScientificNumber.cs")
     {
         var assembly = typeof(StudioForm).Assembly;
-        using var stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(n => n.EndsWith("ScientificNumber.cs") || n.EndsWith("ExportRuntime.cs")))!;
+        using var stream = assembly.GetManifestResourceStream("Incranalytic.Export." + source)!;
         using var reader = new StreamReader(stream); return reader.ReadToEnd();
     }
     public void VerifyStudio(string reportPath)
     {
         var checks = new List<string>();
         void Check(bool ok, string message) { if (!ok) throw new Exception(message); checks.Add("PASS: " + message); }
-        Check(values.Count == 0 && tabs.TabPages[0].Text == "Values", "Startup uses a blank Values sheet");
+        Check(values.Count == 0 && tabs.TabPages[0].Text == "Workspace" && workspace.Graph.Nodes.Count == 0, "Startup has a blank Workspace and blank Values sheet");
         SetProject(new StudioProject { Values = [new() { Symbol = "Q", Name = "Any chosen meaning", Initial = "0", Formula = "R" }, new() { Symbol = "R", Initial = "1e1000", Formula = "0" }] }, null);
         Check(Collect().Values[0].Name == "Any chosen meaning", "Values binding preserves arbitrary symbol meanings");
         EnsureSession(); Check(Advance(true), "Step succeeds through studio controls");
         Check(session!.State["Q"].ToString() == "1e1000" && history.Rows.Count == 2, "Simulation table displays huge scientific values");
         Run(); Check(timer.Enabled, "Run starts simulation timer"); Pause(); Check(!timer.Enabled, "Pause stops simulation timer");
-        Advance(true); tabs.SelectedIndex = 2; graph.Refresh(); tabs.SelectedIndex = 3; diagram.Refresh();
+        Advance(true); tabs.SelectedTab = tabs.TabPages.Cast<TabPage>().Single(t => t.Text == "Graph"); graph.Refresh(); tabs.SelectedTab = tabs.TabPages.Cast<TabPage>().Single(t => t.Text == "Dependencies"); diagram.Refresh();
         Check(samples.Count == 3 && plotted.Items.Count == 2, "Graph and dependency views render with simulation data");
         string folder = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(reportPath))!, "ui-export-" + Guid.NewGuid().ToString("N"));
         UnityExport.Write(folder, Collect(), ExportRuntime()); Check(File.Exists(Path.Combine(folder, "ScientificNumber.cs")), "Installed app exports its embedded C# runtime");
         Reset(); Check(session == null && !editor.ReadOnly && samples.Count == 0, "Reset clears history and unlocks editing");
+        SetProject(new StudioProject { Workspace = WorkspaceFiles.ExampleLoop() }, null);
+        EnsureSession(); Advance(true); Advance(true);
+        Check(session!.LastWorkspace.Outputs[session.Project.Workspace.Nodes.Single(n => n.Kind == "Output").Id]["value"].ToString() == "2e0", "Workspace-only loop simulates through studio controls");
+        Check(channels.Count == 1 && history.RowCount == 3, "Workspace output appears in the shared table and graph channels");
+        tabs.SelectedIndex = 0; workspace.Canvas.Refresh(); workspace.Canvas.Select(workspace.Graph.Nodes.Single(n => n.Kind == "Module"));
+        Check(session.LastWorkspace.Traces.Values.Any(t => t.Any(s => s.Contains("true"))), "Conditional branch trace powers the number inspector");
+        string workspaceFolder = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(reportPath))!, "ui-workspace-export-" + Guid.NewGuid().ToString("N"));
+        UnityExport.Write(workspaceFolder, Collect(), ExportRuntime(), ExportRuntime("Ifcloud.cs"), ExportRuntime("WorkspaceRuntime.cs"));
+        Check(File.Exists(Path.Combine(workspaceFolder, "Ifcloud.cs")), "Installed workspace exports its embedded IFCLOUD runtime");
+        Reset(); workspace.AddNode("Input"); int added = workspace.Graph.Nodes.Count; workspace.Undo(); Check(workspace.Graph.Nodes.Count == added - 1, "Workspace editing supports undo");
+        Check(tabs.TabPages.Cast<TabPage>().Any(t => t.Text == "IFCLOUD Index"), "IFCLOUD Index is built into the installed studio");
+        workspace.Canvas.VerifyGestures(); Check(workspace.Graph.Edges.Count == 1, "Canvas mouse handlers wire ports, drag/snap blocks, zoom and pan");
         dirty = false; File.WriteAllLines(reportPath, checks);
     }
     public const string Terms = "INCRANALYTIC STUDIO — DEVELOPMENT PREVIEW\n\nThis software supports education and human-authored system design. You are responsible for your use, your authored rules, and the rights needed for any imported material or distributed exports.\n\nProvided as-is, without guarantees of correctness, completeness, fitness, or uninterrupted operation, to the extent permitted by law. Mandatory legal rights remain unaffected. Verify exported code in your target engine. These preview terms need legal review before a public commercial release.\n\nPrivacy: projects and calculations stay local. This version has no telemetry, AI service, account, network requests, or automatic system generation. Development has used AI assistance.\n\nNumber behavior: finite significant-digit precision (1–1,000), truncation toward zero after each operation, arbitrary-size integer exponents subject to memory and input limits. Extremely small addends can be discarded at selected precision. No literal infinity is stored.\n\nSimulation: all gain formulas read the previous step's state; updates are simultaneous. Per-second mode uses fixed-step Euler updates (gain × interval); per-tick mode adds the gain once. Changing interval can change results.\n\nImport supports the Incranalytic project format, not arbitrary compiled scripts. Unity export uses the same arithmetic and update rules; engine integration must still be tested in Unity.";
-    const string Guide = "INCRANALYTIC — SYSTEM INDEX\n\nVALUES\nSymbols are case-sensitive and user-defined. A can mean coins in one project and a multiplier in another. Use letters, digits and underscores; begin with a letter or underscore. Display names can contain spaces.\n\nINITIAL VALUE\nStarting number, e.g. 0, 1.25, 1e1000. All results display scientific notation.\n\nGAIN FORMULA\nAmount added to a symbol. Per-second mode multiplies it by the chosen interval; per-tick mode adds it once per tick. 0 keeps a value constant. Examples: B * C, A * 0.05, min(B, C).\n\nFUNCTIONS AND OPERATORS\n+ - * / ^ ( )\nabs(x), min(a,b), max(a,b)\nPowers require integer exponents from -100000 to 100000. Direct e notation supports much larger magnitudes. Fractional powers, comparisons and conditions are future capabilities.\n\nTIME\nChoose interval in seconds. Time has no automatic project symbol. To model elapsed time, define any symbol with initial 0 and gain 1 in per-second mode.\n\nSIMULATION TICK\nOne update. Every formula reads the previous state; all results apply together. Example: A starts at 0 and gains B; B starts at 1 and gains 1. After two one-second steps A=3, B=3.\n\nRUN / PAUSE / STEP / RESET\nRun advances with elapsed wall time. Pause stops advancing. Step applies one interval. Reset clears recorded results, restores initial conditions on the next run, and unlocks editing. Save retains the authored model, not a running simulation. Latest 2,001 samples are retained.\n\nPRECISION AND BIG NUMBERS\nChoose 1–1,000 significant digits. Results truncate toward zero after each operation. Numbers use integer coefficients and arbitrary-size integer exponents, limited by memory. This does not mean infinite storage or exact arithmetic at finite precision.\n\nGRAPHS\nGraph plots positive values on a log10 vertical axis. Zero/negative/out-of-range points are omitted; the table retains their values. Horizontal axis is sample index; elapsed time is in the table.\n\nDEPENDENCY GRAPH\nShows which symbols influence each gain formula. Connect symbols edits the target gain formula. Feedback and self-reference use previous-tick values, avoiding same-tick circular evaluation.\n\nGROWTH REGIME\nLinear: constant gain. Exponential: gain proportional to existing value.\n\nCOMPOUNDING\nGrowth that acts on previous growth. Interval and modifier order matter.\n\nMODIFIER PIPELINE\nOrder of bonuses; write explicit parentheses to express your chosen order.\n\nBOTTLENECK / THROUGHPUT\nA limiting input / quantity processed per time. min(A,B) can model a simple limiting rate.\n\nSOFT CAP\nA rule reducing growth beyond a threshold. The base studio does not yet implement conditional formulas or fractional powers.\n\nCOST ESCALATION\nExample: baseCost * growth ^ owned, with integer owned.\n\nAFFORDABILITY / PAYBACK\nCost divided by positive income or production increase. Variable income needs a time simulation.\n\nPRESTIGE / RESET LAYERS\nAuthored reset mechanics; specialized event and reset nodes are future work.\n\nOFFLINE SIMULATION\nA modeled time interval. A constant rate can be integrated as rate × duration; changing rates require explicit simulation.\n\nPROGRESSION ENVELOPE\nA creator's expected bounds or target outcomes. Incranalytic does not decide which progression is correct.\n\nC# / UNITY EXPORT\nExports a MonoBehaviour plus shared scientific arithmetic. Copy the two .cs files into a Unity project's Assets folder. Attach IncranalyticSystem to a GameObject. The export README explains integration, precision, and testing.\n\nPURPOSE\nYou create the rules. Incranalytic calculates, displays and tests them. It does not use AI to generate your system.";
+    const string Guide = "INCRANALYTIC — SYSTEM INDEX\n\nVALUES\nSymbols are case-sensitive and user-defined. A can mean coins in one project and a multiplier in another. Use letters, digits and underscores; begin with a letter or underscore. Display names can contain spaces.\n\nINITIAL VALUE\nStarting number, e.g. 0, 1.25, 1e1000. All results display scientific notation.\n\nGAIN FORMULA\nAmount added to a symbol. Per-second mode multiplies it by the chosen interval; per-tick mode adds it once per tick. 0 keeps a value constant. Examples: B * C, A * 0.05, min(B, C).\n\nFUNCTIONS AND OPERATORS\n+ - * / ^ ( )\nabs(x), min(a,b), max(a,b)\nPowers require integer exponents from -100000 to 100000. Direct e notation supports much larger magnitudes. Values formulas use arithmetic. Use IFCLOUD modules in Workspace for comparisons and conditions. Fractional powers remain unsupported.\n\nTIME\nChoose interval in seconds. Time has no automatic project symbol. To model elapsed time, define any symbol with initial 0 and gain 1 in per-second mode.\n\nSIMULATION TICK\nOne update. Every formula reads the previous state; all results apply together. Example: A starts at 0 and gains B; B starts at 1 and gains 1. After two one-second steps A=3, B=3.\n\nRUN / PAUSE / STEP / RESET\nRun advances with elapsed wall time. Pause stops advancing. Step applies one interval. Reset clears recorded results, restores initial conditions on the next run, and unlocks editing. Save retains the authored model, not a running simulation. History retains up to 2,001 samples and approximately 100,000 signal cells.\n\nPRECISION AND BIG NUMBERS\nChoose 1–1,000 significant digits. Results truncate toward zero after each operation. Numbers use integer coefficients and arbitrary-size integer exponents, limited by memory. This does not mean infinite storage or exact arithmetic at finite precision.\n\nGRAPHS\nGraph plots positive values on a log10 vertical axis. Zero/negative/out-of-range points are omitted; the table retains their values. Horizontal axis is sample index; elapsed time is in the table.\n\nDEPENDENCY GRAPH\nShows which symbols influence each gain formula. Connect symbols edits the target gain formula. Feedback and self-reference use previous-tick values, avoiding same-tick circular evaluation.\n\nGROWTH REGIME\nLinear: constant gain. Exponential: gain proportional to existing value.\n\nCOMPOUNDING\nGrowth that acts on previous growth. Interval and modifier order matter.\n\nMODIFIER PIPELINE\nOrder of bonuses; write explicit parentheses to express your chosen order.\n\nBOTTLENECK / THROUGHPUT\nA limiting input / quantity processed per time. min(A,B) can model a simple limiting rate.\n\nSOFT CAP\nA rule reducing growth beyond a threshold. IFCLOUD modules can author thresholds and branches; fractional powers remain unsupported.\n\nCOST ESCALATION\nExample: baseCost * growth ^ owned, with integer owned.\n\nAFFORDABILITY / PAYBACK\nCost divided by positive income or production increase. Variable income needs a time simulation.\n\nPRESTIGE / RESET LAYERS\nAuthored reset mechanics; specialized event and reset nodes are future work.\n\nOFFLINE SIMULATION\nA modeled time interval. A constant rate can be integrated as rate × duration; changing rates require explicit simulation.\n\nPROGRESSION ENVELOPE\nA creator's expected bounds or target outcomes. Incranalytic does not decide which progression is correct.\n\nC# / UNITY EXPORT\nExports a MonoBehaviour plus shared scientific arithmetic. Copy every exported .cs file into a Unity project's Assets folder. Attach IncranalyticSystem to a GameObject. The export README explains integration, precision, and testing.\n\nPURPOSE\nYou create the rules. Incranalytic calculates, displays and tests them. It does not use AI to generate your system.";
 }

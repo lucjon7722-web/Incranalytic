@@ -23,7 +23,17 @@ The core workflow does not require an AI model, an AI account, or sending a proj
 
 These are product goals, not claims that the current application already implements them.
 
-## Version 0.2 — base studio
+## Version 0.3 — Workspace and IFCLOUD
+
+The studio now starts in a large pannable/zoomable grid workspace. Place Input, Module, Previous-step and Output blocks; drag their ports to wire them together. Modules contain human-authored IFCLOUD code. Its C#-style conditionals, declarations and numeric assignments control the system. A built-in IFCLOUD Index explains every supported construct.
+
+The inspector's **Why this number?** view shows real execution records: wire inputs, conditions, branch decisions, assignments, outputs and memory. Group related blocks, save module templates, and export/import reusable groups or entire systems. Workspace outputs use the same Run/Pause/Step/Reset controls, simulation table and graph as Values.
+
+An included conditional counter demonstrates an explicit feedback loop. Use Previous-step to hold state between ticks; unbroken same-tick cycles are rejected. The first row is labeled preview and does not advance memory. Projects can save unfinished code/wiring; executable validation is required for Run and Unity export. Saving uses an atomic replacement and retains the previous file as `.bak`.
+
+Read [the IFCLOUD language and workspace guide](docs/IFCLOUD.md). Unity export includes the same interpreter and workspace runtime; actual Unity editor integration still needs testing.
+
+## Base capabilities
 
 Implemented in the development build:
 
@@ -37,7 +47,7 @@ Implemented in the development build:
 - C# export for Unity with the same arithmetic and fixed-step simulation rules.
 - Offline Windows x64 installer, English language page, terms, destination/shortcut choices, Windows Installed Apps registration, and an uninstaller with optional private-runtime cleanup.
 
-The graph retains 2,001 samples and omits nonpositive or out-of-range plotted values. Powers require integer exponents. Conditional/event nodes, arbitrary script import, Desmos, and user-created plugins remain future work. A project import means the `.incr` format. The broad intended experience above includes future goals.
+History retains up to 2,001 samples and approximately 100,000 signal cells; graphs omit nonpositive or out-of-range plotted values. Projects support 500 Values and 500 workspace blocks. Powers require integer exponents. Specialized event nodes, arbitrary C# script import, Desmos, and third-party plugins remain future work. Project import means the `.incr` format; reusable modules use `.ifcloud` and reusable systems/groups use `.ifgraph`.
 
 Read [the studio guide](docs/studio-guide.md). The earlier [inspection preview](docs/preview-0.1.md) is historical; the application now starts in the studio.
 
@@ -48,11 +58,12 @@ Requires the .NET 10 SDK on the build computer. Users receive the runtime bundle
 ```powershell
 dotnet build src/Incranalytic.App -c Release
 dotnet run --project tests/Incranalytic.StudioTests
-./scripts/Build-Installer.ps1 -Compiler 'path/to/ISCC.exe'
+dotnet run --project tests/Incranalytic.WorkspaceTests
+./scripts/Build-Installer.ps1 -Compiler 'path/to/ISCC.exe' -IncludeTestInstaller
 ./scripts/Test-Installer.ps1
 ```
 
-The studio checks cover scientific arithmetic, selected precision, invalid input, deterministic updates, project round trips, and compilation/parity of generated C#9 using a Unity API stub. Installed-app checks exercise the Values binding, simulation controls, rendering and embedded export runtime. Installer checks cover registration, install, dependency retention, full removal and preservation of user projects on the current Windows host. A clean Windows VM and real Unity editor integration have not been tested.
+The studio checks cover scientific arithmetic, selected precision, invalid input, deterministic updates, project round trips, IFCLOUD parsing/branches/short-circuit behavior, bounded execution, feedback, failed-tick atomicity, drafts, reusable systems, a 500-block chain and compilation/parity of generated C#9 using a Unity API stub. Installed-app checks exercise binding, canvas mouse gestures, simulation controls, rendering, undo, the index and embedded export runtimes. Installer checks use a separate test application identity to preserve an existing user installation. They cover registration, install, dependency retention, full removal and preservation of user projects on the current Windows host. A clean Windows VM and real Unity editor integration have not been tested.
 
 Inno Setup is a build tool, not an end-user dependency. This development installer uses the noncommercial compiler; obtain the appropriate Inno Setup license before commercial distribution. Installer and application are unsigned development builds.
 

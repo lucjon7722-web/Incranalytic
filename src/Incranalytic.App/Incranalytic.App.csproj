@@ -6,13 +6,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Incranalytic</AssemblyName>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Incranalytic.Core\Incranalytic.Core.csproj" />
     <Compile Remove="MainForm.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\Incranalytic.Core\ScientificNumber.cs" Link="ExportRuntime.cs" />
+    <EmbeddedResource Include="..\Incranalytic.Core\ScientificNumber.cs" LogicalName="Incranalytic.Export.ScientificNumber.cs" />
+    <EmbeddedResource Include="..\Incranalytic.Core\Ifcloud.cs" LogicalName="Incranalytic.Export.Ifcloud.cs" />
+    <EmbeddedResource Include="..\Incranalytic.Core\WorkspaceRuntime.cs" LogicalName="Incranalytic.Export.WorkspaceRuntime.cs" />
   </ItemGroup>
 </Project>
