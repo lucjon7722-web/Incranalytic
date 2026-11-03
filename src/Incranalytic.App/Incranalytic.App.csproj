@@ -6,10 +6,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Incranalytic</AssemblyName>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Incranalytic.Core\Incranalytic.Core.csproj" />
-    <None Include="..\..\samples\incremental-demo.json" Link="samples\incremental-demo.json" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Remove="MainForm.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\Incranalytic.Core\ScientificNumber.cs" Link="ExportRuntime.cs" />
   </ItemGroup>
 </Project>

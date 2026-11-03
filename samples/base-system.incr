@@ -1,0 +1,11 @@
+{
+  "FormatVersion": 1,
+  "Precision": 34,
+  "Interval": 1,
+  "PerSecond": true,
+  "Values": [
+    { "Symbol": "A", "Name": "Coins", "Initial": "0", "Formula": "B * C" },
+    { "Symbol": "B", "Name": "Base gain per second", "Initial": "1", "Formula": "0" },
+    { "Symbol": "C", "Name": "Multiplier", "Initial": "1", "Formula": "0" }
+  ]
+}

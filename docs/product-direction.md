@@ -56,16 +56,19 @@ Invalid names, missing inputs, circular dependencies, and conflicting units need
 
 **Complete installer:** supply all required runtimes and prerequisites, subject to redistribution rights. Verify installation on a clean supported Windows environment, plus upgrade and uninstall behavior. Users should not need to discover dependencies themselves.
 
-## Open design decisions
+## Confirmed base decisions
 
-- Which engine and scripting language should be the first export target?
-- Which existing system formats should be importable first?
-- Should simulation support manual actions, an authored purchase strategy, or both?
+- C# for Unity is the first code export target; the base studio imports its own editable `.incr` format.
+- Values is a blank sheet of user-defined symbols and their project-specific meanings. No letter has a built-in game meaning.
+- Users choose a fixed interval and whether gain formulas represent per-second rates or per-tick increments.
+- Testing uses Run, Pause, Step and Reset.
+- Numbers use scientific notation and a user-selected significant-digit count. Infinite digits cannot be stored; storage and supported operations have explicit limits.
+- Installer includes the base studio, private .NET dependencies, an English-only language choice and optional dependency removal during uninstall.
 
 These decisions remain open for discussion. The future ideas are recorded as brainstorming and are not yet implementation tasks.
 
-## First requested system: time and point multipliers
+## Example systems
 
-The owner proposes a system with X representing points, a base increase of +1 per second, Y representing total elapsed time, and T representing a point multiplier. Their example combines Y=10 and T=10 to produce 100 after ten seconds.
+Symbols in examples are local choices. A user can name a balance A, Stars, coins, or another identifier; the Values sheet tells the system what it means within that project. A separate index explains concepts and supported syntax without assigning global meanings to symbols.
 
-Before implementation, clarify whether 100 means the point balance, points gained during the tenth second, or the current production rate. Also clarify whether T grows with elapsed time or is independently authored. The example does not yet establish those rules. Simulation tick order and code export must preserve whichever behavior is selected.
+The included base example gives A a starting value of 0 and gain B * C, with B and C initially 1 and constant. At a one-second interval, A increases by 1 each tick. Users decide if any symbol represents time, a rate, a multiplier, or another quantity by authoring its initial value and gain formula.

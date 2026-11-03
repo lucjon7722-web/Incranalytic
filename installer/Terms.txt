@@ -1,0 +1,11 @@
+INCRANALYTIC STUDIO 0.2 - DEVELOPMENT PREVIEW
+
+Incranalytic supports education and human-authored system design. You are responsible for your use, your authored rules, and the permissions required for imported material and distributed exports.
+
+Provided as-is, without guarantees of correctness, completeness, fitness, or uninterrupted operation, to the extent permitted by applicable law. Mandatory legal rights remain unaffected. Verify simulations and exported code before relying on them. These preview terms require legal review before a public commercial release.
+
+Privacy: This build processes projects locally and has no telemetry, account, AI generation service, or network requests. Development has used AI assistance.
+
+Numerical precision is finite and user-selected. Operations truncate toward zero. Very large exponents are supported subject to memory and input limits. No literal infinity is stored. Fixed-step simulation may change with the chosen interval.
+
+The included Microsoft .NET runtime and Windows Forms libraries retain their own licenses and third-party notices, included with the installation. Source code licensing has not yet been selected. User-created systems remain the user's work.
