@@ -1,39 +1,41 @@
 # Incranalytic
 
-A Windows desktop workbench for investigating the numbers, formulas, and progression systems in incremental games. The classic interface includes a file tree, searchable findings, explanations, source evidence, and a formula calculator with a level table.
+A planned Windows workspace for people to create, visualize, and test incremental game systems. Users define the values, rules, formulas, and relationships. Graphs, tables, charts, and diagrams make the consequences of those choices visible.
 
-## Version 0.1 development preview
+## Purpose and authorship
 
-Working features:
-- Open APK/ZIP packages, extracted folders, JSON, CSV, and text/source files.
-- Find JSON numeric literals and explicit formula strings; find numeric assignments in text and source code.
-- Group likely currencies, production, upgrades, prestige, and offline systems. Each result identifies its source and distinguishes literal values from inferred roles.
-- Evaluate arithmetic, powers, variables, parentheses, floor, ceil, sqrt, log, min, max, and pow. Compare levels 0–20.
-- Export HTML, JSON, and CSV reports; copy original packages without modification; extract files without overwriting existing files.
-- Use the included fictional Clockwork Orchard demo with 20 known findings.
+Incranalytic supports human creativity and reasoning. Its purpose is not to use AI to generate incremental game systems. People author their mechanics and make the design decisions; the tools calculate, simulate, visualize, and help them test those decisions.
 
-This build does not yet decompile DEX/native code, decode Unity assets or Godot packs, rebuild APKs, or recover every mechanic from compiled games. Those require engine-specific integrations. Binary files remain visible in the file tree, and the Overview tab reports analysis coverage. No game code is executed.
+The planned core workflow does not require an AI model, an AI account, or sending a project to an AI service. This repository has used AI-assisted software development. That process is disclosed separately from the functionality offered to users.
 
-## Run
+## Intended experience
 
-Extract the portable Windows x64 package, then run `Incranalytic.exe`. Use **Demo** to try the known data set. Open **Formula Lab** and press **Calculate + level table**: the default level-10 tree cost should be approximately **60.6833660356**.
+- Define named values, currencies, generators, costs, upgrades, timers, milestones, and resets.
+- Write formulas with an index of supported words, functions, variables, units, and examples that explains what users can type.
+- See graphs, tables, charts, and dependency diagrams connected to the same authored system.
+- Change a parameter and inspect its effects across levels, time, or selected scenarios.
+- Test expectations and inspect the calculation steps and assumptions behind each result.
+- Save and share editable systems with their rules intact.
+- Work in an original classic desktop interface inspired by tools such as Ghidra.
 
-## Build and verify
+These are product goals, not claims that the current application already implements them.
 
-Requires the .NET 10 SDK on Windows. There are no third-party package dependencies.
+## Current status
 
-```powershell
-dotnet build src/Incranalytic.App -c Release
-dotnet run --project tests/Incranalytic.Smoke -- samples/incremental-demo.json
-dotnet publish src/Incranalytic.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
-```
+The project is changing direction from game inspection to system creation. The existing **0.1 development preview** was built around inspection and remains an early technical foundation. It includes a formula evaluator, a level table, file inspection, and report exports. It does not yet provide the visual system authoring workspace described above.
 
-The test runner checks known findings, formula results, error cases, APK data inspection, unchanged original export, reports, extraction, and path traversal rejection.
+See [the current preview and build instructions](docs/preview-0.1.md) for what actually works today, and [the product direction](docs/product-direction.md) for the new planning baseline. This update changes documentation only.
 
-## Terms and privacy
+## Future ideas — brainstorming
 
-Educational purpose. Users are responsible for their actions and for having the rights or permissions required to inspect imported material. This development preview is provided as-is. Its findings may be incomplete or incorrect. No waiver applies where prohibited by law. Preview terms need legal review before public release. Full preview terms and coverage are available in **Help → Terms, privacy and coverage**.
+- Built-in Desmos Graphing Calculator integration.
+- User-created plugins.
+- A complete Windows installation package that supplies the application and all required dependencies, with no manual prerequisite setup.
 
-Processing is local. This version has no telemetry, upload service, account system, or online AI provider. Imported originals are never modified. Archive limits: 20,000 files, 128 MB per file, and 1 GB expanded total; suspicious paths, symbolic links, and excessive compression ratios are rejected.
+These ideas are recorded for later investigation. Integration design, licensing, offline behavior, plugin permissions, and distribution details have not been selected. There is no committed implementation or release date for them.
 
-Project source licensing has not yet been selected. Third-party game files and assets are not included.
+## Privacy and ownership
+
+Local operation and transparent calculations are design goals. Users should be able to inspect and retain the rules they authored. The existing preview processes files locally and has no telemetry or online AI provider.
+
+Source licensing has not yet been selected. Terms and packaging will be revised for the creation-focused product before public release.
