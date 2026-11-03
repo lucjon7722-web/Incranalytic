@@ -1,6 +1,6 @@
 # Incranalytic
 
-A planned Windows workspace for people to create, visualize, and test incremental game systems. Users define the values, rules, formulas, and relationships. Graphs, tables, charts, and diagrams make the consequences of those choices visible.
+A planned Windows studio for people to create, visualize, and test incremental game systems, then export scripts or code for their game. Users define the values, rules, formulas, and relationships. Graphs, tables, charts, and diagrams make the consequences of those choices visible.
 
 ## Purpose and authorship
 
@@ -10,12 +10,15 @@ The planned core workflow does not require an AI model, an AI account, or sendin
 
 ## Intended experience
 
+- Start with a fresh, untouched system or import an existing compatible system. Supported import formats remain to be defined.
+- Edit one system through connected structured fields, typed formulas, and nodes.
 - Define named values, currencies, generators, costs, upgrades, timers, milestones, and resets.
 - Write formulas with an index of supported words, functions, variables, units, and examples that explains what users can type.
 - See graphs, tables, charts, and dependency diagrams connected to the same authored system.
 - Change a parameter and inspect its effects across levels, time, or selected scenarios.
 - Test expectations and inspect the calculation steps and assumptions behind each result.
 - Save and share editable systems with their rules intact.
+- Export authored systems as scripts or code for a target game engine. Target languages and integration contracts remain to be selected; export should preserve tested behavior.
 - Work in an original classic desktop interface inspired by tools such as Ghidra.
 
 These are product goals, not claims that the current application already implements them.

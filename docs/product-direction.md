@@ -10,11 +10,16 @@ The former APK/game-inspection workflow is no longer the primary product directi
 
 ## Proposed creation loop
 
+Confirmed direction: Incranalytic is a studio for authoring and testing systems and exporting them as scripts or code for a user's game. The target is system code export, rather than exporting a complete playable game.
+
+Creation begins with a fresh, untouched system or an imported compatible system. Users work through connected structured fields, formulas, and nodes; all views represent the same model. Import formats and the first code export target remain to be selected. Import does not imply automatic reconstruction of arbitrary compiled games.
+
 1. Declare meaningful values, starting amounts, and units.
 2. Define production, purchasing, upgrades, conditions, or resets.
 3. Inspect formulas, tables, graphs, and dependency diagrams.
 4. Run a scenario with explicit starting conditions, duration, and player actions.
 5. Compare results to expectations and revise the system.
+6. Export scripts or code with the same timing, state changes, and calculations that were tested in the studio.
 
 For example, a creator could define a tree costing 15 apples, cost growth of 1.15 per purchase, and production of 1 apple per tree per second. A cost graph shows the next purchase cost at each owned count. A time simulation additionally needs a starting balance and a purchase strategy. Those assumptions should be visible rather than silently supplied.
 
@@ -53,8 +58,14 @@ Invalid names, missing inputs, circular dependencies, and conflicting units need
 
 ## Open design decisions
 
-- Is the first release a design and balancing workbench, or should it run and export a playable game?
-- Should creation begin with formulas, forms, a node diagram, or connected views of one model?
+- Which engine and scripting language should be the first export target?
+- Which existing system formats should be importable first?
 - Should simulation support manual actions, an authored purchase strategy, or both?
 
 These decisions remain open for discussion. The future ideas are recorded as brainstorming and are not yet implementation tasks.
+
+## First requested system: time and point multipliers
+
+The owner proposes a system with X representing points, a base increase of +1 per second, Y representing total elapsed time, and T representing a point multiplier. Their example combines Y=10 and T=10 to produce 100 after ten seconds.
+
+Before implementation, clarify whether 100 means the point balance, points gained during the tenth second, or the current production rate. Also clarify whether T grows with elapsed time or is independently authored. The example does not yet establish those rules. Simulation tick order and code export must preserve whichever behavior is selected.
