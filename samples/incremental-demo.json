@@ -1,0 +1,30 @@
+{
+  "game": "Clockwork Orchard (fictional demo)",
+  "currencies": {
+    "apples": { "startingAmount": 10, "productionPerSecond": 2.5 },
+    "seeds": { "startingAmount": 0, "prestigeRequirement": 1000000 }
+  },
+  "generators": {
+    "tree": {
+      "baseCost": 15,
+      "costGrowth": 1.15,
+      "baseProduction": 1,
+      "costFormula": "baseCost * costGrowth ^ level",
+      "productionFormula": "baseProduction * owned * multiplier"
+    },
+    "greenhouse": {
+      "baseCost": 500,
+      "costGrowth": 1.22,
+      "baseProduction": 20
+    }
+  },
+  "upgrades": {
+    "fertilizer": { "cost": 100, "multiplier": 2 },
+    "irrigation": { "cost": 2500, "multiplier": 3 }
+  },
+  "prestige": {
+    "resetAt": 1000000,
+    "rewardFormula": "floor(totalApples ^ 0.5 / 100)"
+  },
+  "offline": { "maxSeconds": 28800, "efficiency": 0.5 }
+}
