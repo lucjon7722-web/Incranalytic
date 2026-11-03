@@ -23,7 +23,15 @@ The core workflow does not require an AI model, an AI account, or sending a proj
 
 These are product goals, not claims that the current application already implements them.
 
-## Version 0.3 — Workspace and IFCLOUD
+## Version 0.4 — reusable installer / Version Manager
+
+Keep `Incranalytic-Installer.exe` to select and install published studio versions without downloading a new launcher for every release. Studio setup also installs it under **Help → Install / manage versions** and a Start menu shortcut. The selected version is downloaded, size/SHA-256 checked, then opened in the normal setup wizard. This manages one studio installation at a time and supports choosing older versions.
+
+The current GitHub repository is private. The manager requires a repository-scoped GitHub token with Contents: Read; browser cookies are not reused. Remembering is opt-in through Windows Credential Manager. No token is embedded in software, written to projects or forwarded to download redirects. Read [Version Manager access and behavior](docs/version-manager.md).
+
+Version 0.4's offline setup remains available for installing that specific version directly. The reusable manager includes its own runtime so it can operate independently of the installed studio. The studio remains offline; only the manager requests release data and assets from GitHub.
+
+## Workspace and IFCLOUD (introduced in 0.3)
 
 The studio now starts in a large pannable/zoomable grid workspace. Place Input, Module, Previous-step and Output blocks; drag their ports to wire them together. Modules contain human-authored IFCLOUD code. Its C#-style conditionals, declarations and numeric assignments control the system. A built-in IFCLOUD Index explains every supported construct.
 
@@ -59,6 +67,7 @@ Requires the .NET 10 SDK on the build computer. Users receive the runtime bundle
 dotnet build src/Incranalytic.App -c Release
 dotnet run --project tests/Incranalytic.StudioTests
 dotnet run --project tests/Incranalytic.WorkspaceTests
+dotnet run --project tests/Incranalytic.DistributionTests
 ./scripts/Build-Installer.ps1 -Compiler 'path/to/ISCC.exe' -IncludeTestInstaller
 ./scripts/Test-Installer.ps1
 ```
@@ -77,6 +86,6 @@ These ideas are recorded for later investigation. Integration design, licensing,
 
 ## Privacy and ownership
 
-Local operation and transparent calculations are design goals. Users should be able to inspect and retain the rules they authored. The existing preview processes files locally and has no telemetry or online AI provider.
+Studio calculations and projects stay local. The studio has no telemetry or online AI provider. The optional Version Manager contacts GitHub for releases and installer files and optionally stores a repository token in Windows Credential Manager. Users can forget the token or remove it with the 0.4 uninstaller's preferences/cache cleanup option.
 
 Source licensing has not yet been selected. Preview terms are included in the installer and the Help menu. Legal review and release signing remain public-release tasks.

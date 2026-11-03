@@ -1,4 +1,4 @@
-# Incranalytic Studio 0.3
+# Incranalytic Studio 0.4
 
 Start in **Workspace**, a pannable/zoomable grid for building conditional systems. Add blocks from the toolbar, move them by dragging, and connect right-side output ports to left-side input ports. Middle/right drag pans; the wheel zooms. Fit brings the scene into view.
 
@@ -24,4 +24,6 @@ Unity export creates C# source, the shared numeric/interpreter/workspace runtime
 
 The offline installer includes private Microsoft .NET 10 / Windows Forms dependencies, an English-only language page, terms and shortcut/destination options. Uninstall can remove or retain private runtime files; projects are preserved and shared machine runtimes are never removed. A separate unchecked option removes known preferences and cache. Application and installer are unsigned development builds.
 
-Desmos, third-party plugins, arbitrary C# imports and a complete game exporter remain future work. Source licensing and preview terms need review before commercial distribution. The software has no telemetry, account, network calls or online AI provider; development has used AI assistance.
+Desmos, third-party plugins, arbitrary C# imports and a complete game exporter remain future work. Source licensing and preview terms need review before commercial distribution. Studio projects stay local, with no telemetry or online AI provider. The optional Version Manager accesses GitHub for release listings and downloads; private access requires a user-provided token. Development has used AI assistance.
+
+Use Help → Install / manage versions or the Start menu Version Manager to choose releases. You can also keep the standalone Incranalytic-Installer.exe. See version-manager.md for private repository access, credential controls, and downgrade compatibility.

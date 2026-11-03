@@ -1,14 +1,14 @@
-#define AppVersion "0.3.0"
+#define AppVersion "0.4.0"
 [Setup]
 #ifdef TestBuild
 AppId={{9B32C142-B7D2-4635-A0D8-19D029D8D8C7}
 OutputDir=..\..\work\test-installer
-OutputBaseFilename=Incranalytic-0.3.0-TestSetup
+OutputBaseFilename=Incranalytic-0.4.0-TestSetup
 DefaultGroupName=Incranalytic Test
 #else
 AppId={{82D861BC-A02B-4C41-B9EA-2878D66918B3}
 OutputDir=..\..\outputs
-OutputBaseFilename=Incranalytic-0.3.0-Setup
+OutputBaseFilename=Incranalytic-0.4.0-Setup
 DefaultGroupName=Incranalytic
 #endif
 AppName=Incranalytic Studio
@@ -42,9 +42,12 @@ Source: "Terms.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\studio-guide.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\IFCLOUD.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\samples\conditional-counter.incr"; DestDir: "{app}\examples"; Flags: ignoreversion
+Source: "{#ManagerFile}"; DestDir: "{app}\manager"; Flags: ignoreversion
+Source: "..\docs\version-manager.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Incranalytic Studio"; Filename: "{app}\Incranalytic.exe"
+Name: "{group}\Incranalytic Version Manager"; Filename: "{app}\manager\Incranalytic-Installer.exe"
 Name: "{group}\Uninstall Incranalytic"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\Incranalytic Studio"; Filename: "{app}\Incranalytic.exe"; Tasks: desktopicon
 
@@ -57,6 +60,11 @@ var
   CleanPrivateRuntime: Boolean;
   CleanPreferences: Boolean;
   RuntimeFiles: TArrayOfString;
+
+#ifndef TestBuild
+function DeleteManagerCredential(TargetName: String; CredentialType, Flags: LongWord): Boolean;
+  external 'CredDeleteW@advapi32.dll stdcall';
+#endif
 
 procedure InitializeWizard;
 begin
@@ -94,7 +102,7 @@ begin
   RemoveSettings := TNewCheckBox.Create(Form);
   RemoveSettings.Parent := Form;
   RemoveSettings.SetBounds(ScaleX(15), ScaleY(125), Form.ClientWidth - ScaleX(30), ScaleY(35));
-  RemoveSettings.Caption := 'Also remove Incranalytic preferences and cache';
+  RemoveSettings.Caption := 'Also remove preferences, cache and saved GitHub token';
   RemoveSettings.Checked := False;
   OKButton := TNewButton.Create(Form); OKButton.Parent := Form;
   OKButton.SetBounds(ScaleX(290), ScaleY(195), ScaleX(110), ScaleY(28));
@@ -128,9 +136,12 @@ begin
       DeleteFile(ExpandConstant('{app}\runtime-files.txt'));
     end;
     if CleanPreferences then begin
+#ifndef TestBuild
+      DeleteManagerCredential('Incranalytic/GitHubReleases', 1, 0);
       DeleteFile(ExpandConstant('{localappdata}\Incranalytic\preferences.json'));
       DelTree(ExpandConstant('{localappdata}\Incranalytic\cache'), True, True, True);
       RemoveDir(ExpandConstant('{localappdata}\Incranalytic'));
+#endif
     end;
     RemoveDir(ExpandConstant('{app}'));
   end;
