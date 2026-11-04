@@ -12,6 +12,7 @@ $managerFile = Join-Path $managerStage 'Incranalytic-Installer.exe'
 Copy-Item -LiteralPath $managerFile -Destination (Join-Path $workspace 'outputs\Incranalytic-Installer.exe')
 dotnet publish (Join-Path $repo 'src\Incranalytic.App') -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o $stage
 if ($LASTEXITCODE -ne 0) { throw 'Publish failed' }
+& (Join-Path $PSScriptRoot 'Copy-RuntimeNotices.ps1') -PayloadDirectory $stage
 $runtime = @()
 $entries = @()
 foreach ($file in Get-ChildItem -LiteralPath $stage -Recurse -File) {

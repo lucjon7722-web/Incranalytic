@@ -3,5 +3,8 @@
     <!-- Keep developer machine paths out of public binary debug metadata. -->
     <PathMap>$(MSBuildThisFileDirectory)=/_/Incranalytic/</PathMap>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/obj-store/**;**/bin-store/**</DefaultItemExcludes>
+    <BaseIntermediateOutputPath Condition="'$(StoreBuild)' == 'true' and '$(MSBuildProjectName)' == 'Incranalytic.App'">obj-store\</BaseIntermediateOutputPath>
+    <BaseOutputPath Condition="'$(StoreBuild)' == 'true' and '$(MSBuildProjectName)' == 'Incranalytic.App'">bin-store\</BaseOutputPath>
   </PropertyGroup>
 </Project>

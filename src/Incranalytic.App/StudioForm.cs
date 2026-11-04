@@ -66,13 +66,18 @@ public sealed class StudioForm : Form
         help.DropDownItems.Add("IFCLOUD Manual…", null, (_, _) => ShowManual(true));
         help.DropDownItems.Add(new ToolStripSeparator());
         help.DropDownItems.Add("Terms and privacy", null, (_, _) => MessageBox.Show(this, Terms, "Incranalytic terms"));
-        help.DropDownItems.Add("Install / manage versions…", null, (_, _) => Try(() =>
+        help.DropDownItems.Add(DistributionChannel.UpdateMenuLabel, null, (_, _) => Try(() =>
         {
+            if (DistributionChannel.IsStore)
+            {
+                MessageBox.Show(this, "Microsoft Store manages updates for this edition. Open Microsoft Store → Library to check for updates.\n\nProject files remain editable in compatible Incranalytic versions.", "Microsoft Store updates");
+                return;
+            }
             string manager = Path.Combine(AppContext.BaseDirectory, "manager", "Incranalytic-Installer.exe");
             if (!File.Exists(manager)) throw new FileNotFoundException("The reusable Version Manager is included with the published setup. Install version 0.4 or download Incranalytic-Installer.exe from GitHub.");
             Process.Start(new ProcessStartInfo(manager) { UseShellExecute = true });
         }));
-        help.DropDownItems.Add("About", null, (_, _) => MessageBox.Show(this, "Incranalytic Studio 0.5.0\nA studio for human-authored incremental systems.\n\nDeveloped with substantial assistance from GPT-6.1SOL. This is a solo learning project with no funding or development team; AI assistance makes building and testing it feasible. Human direction defines the product.\n\nThe studio does not use AI services to generate user systems.\n\nUnsigned public development release; actual Unity integration and clean-machine testing remain limited. See the repository's AI development disclosure.", "About Incranalytic"));
+        help.DropDownItems.Add("About", null, (_, _) => MessageBox.Show(this, "Incranalytic Studio 0.5.0\nA studio for human-authored incremental systems.\n\nDeveloped with substantial assistance from GPT-6.1SOL. This is a solo learning project with no funding or development team; AI assistance makes building and testing it feasible. Human direction defines the product.\n\nThe studio does not use AI services to generate user systems.\n\n" + DistributionChannel.AboutDistribution + "\nActual Unity integration and clean-machine testing remain limited. See the repository's AI development disclosure.", "About Incranalytic"));
         var viewMenu = new ToolStripMenuItem("&View");
         ToolStripMenuItem Toggle(string label, bool initial, Action<bool> set)
         {
@@ -419,6 +424,11 @@ public sealed class StudioForm : Form
         MarkDirty(); CaptureRecovery();
         Check(Directory.GetFiles(Path.Combine(profile.Root, "recovery"), "snapshot-*.json").Length == 1, "Dirty projects create a separate local recovery snapshot");
         ClearRecovery();
+        if (DistributionChannel.IsStore)
+        {
+            var helpMenu = MainMenuStrip!.Items.Cast<ToolStripMenuItem>().Single(m => m.Text == "&Help");
+            Check(helpMenu.DropDownItems.Cast<ToolStripItem>().Any(m => m.Text == "Microsoft Store updates…") && !helpMenu.DropDownItems.Cast<ToolStripItem>().Any(m => m.Text == "Install / manage versions…") && Terms.Contains("MICROSOFT STORE EDITION"), "Store edition uses Store update guidance and Store-specific privacy terms");
+        }
         workspace.Canvas.VerifyGestures(); Check(workspace.Graph.Edges.Count == 1, "Canvas mouse handlers wire ports, drag/snap blocks, zoom and pan");
         dirty = false; File.WriteAllLines(reportPath, checks);
     }

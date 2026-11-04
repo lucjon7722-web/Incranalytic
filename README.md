@@ -88,6 +88,12 @@ builds are permitted; studio redistribution requires separate permission. Read
 
 ## Build and checks
 
+Microsoft Store preparation is tracked separately in the
+[Store submission guide](store/submission-guide.md) and
+[preparation status](store/preparation-status.md). A Store-specific MSIX build
+is available through the new packaging scripts; it has not yet been submitted
+or certified. The currently published GitHub installers remain separate.
+
 Developers need the .NET 10 SDK and Inno Setup 6 to build Windows setup.
 End users receive private runtimes; no separate SDK or engine is needed.
 

@@ -7,13 +7,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Incranalytic</AssemblyName>
     <Version>0.5.0</Version>
+    <DefineConstants Condition="'$(StoreBuild)' == 'true'">$(DefineConstants);INCRANALYTIC_STORE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Incranalytic.Core\Incranalytic.Core.csproj" />
     <Compile Remove="MainForm.cs" />
+    <Compile Remove="obj/**;bin/**;obj-store/**;bin-store/**" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="../../installer/Terms.txt" LogicalName="Incranalytic.Terms" />
+    <EmbeddedResource Include="../../installer/Terms.txt" LogicalName="Incranalytic.Terms" Condition="'$(StoreBuild)' != 'true'" />
+    <EmbeddedResource Include="../../store/Terms.txt" LogicalName="Incranalytic.Terms" Condition="'$(StoreBuild)' == 'true'" />
     <EmbeddedResource Include="..\Incranalytic.Core\ScientificNumber.cs" LogicalName="Incranalytic.Export.ScientificNumber.cs" />
     <EmbeddedResource Include="..\Incranalytic.Core\Ifcloud.cs" LogicalName="Incranalytic.Export.Ifcloud.cs" />
     <EmbeddedResource Include="..\Incranalytic.Core\WorkspaceRuntime.cs" LogicalName="Incranalytic.Export.WorkspaceRuntime.cs" />

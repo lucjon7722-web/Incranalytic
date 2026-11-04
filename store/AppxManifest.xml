@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+         IgnorableNamespaces="uap rescap">
+  <!-- Local preflight identity. Build-Store.ps1 replaces these values for submission. -->
+  <Identity Name="Incranalytic.Preflight" Publisher="CN=Incranalytic Local Preflight" Version="0.5.0.0" ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>Incranalytic</DisplayName>
+    <PublisherDisplayName>Kitarie (local preflight)</PublisherDisplayName>
+    <Description>A studio for human-authored incremental systems.</Description>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+  <Resources><Resource Language="en-US" /></Resources>
+  <Applications>
+    <Application Id="Studio" Executable="app\Incranalytic.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Incranalytic" Description="Design and test your own incremental systems."
+          BackgroundColor="#E6E4D6" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" />
+    </Application>
+  </Applications>
+  <Capabilities><rescap:Capability Name="runFullTrust" /></Capabilities>
+</Package>

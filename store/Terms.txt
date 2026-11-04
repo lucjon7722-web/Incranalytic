@@ -1,0 +1,15 @@
+INCRANALYTIC STUDIO 0.5.0 - MICROSOFT STORE EDITION
+
+Incranalytic supports education, experimentation, and human-authored system design. You are responsible for your actions, authored rules, imported material, and testing exported code. Your projects remain yours, subject to rights in imported material.
+
+Official builds may be used without a fee for personal or commercial system design. Studio source is publicly viewable under reserved terms, not an open-source license. See Studio-Source-Terms.txt. Exports and required runtime files permit personal and commercial use, modification, and distribution under EXPORT-LICENSE.txt.
+
+Provided AS IS, without express or implied warranties, including correctness, merchantability, fitness, or noninfringement. To the extent permitted by law, rights holders are not liable for claims or damages arising from use. Mandatory legal rights remain unaffected. Applicable Microsoft Store terms also apply to Store distribution.
+
+Privacy: the studio has no telemetry, advertising SDK, AI provider, account sign-in, or project upload. Your projects and calculations stay on your computer unless you choose to share them. Automatic local recovery starts enabled and can be disabled through View. Recovery may contain unfinished code and paths to saved projects. Windows manages this edition's application data; keep important project files and backups outside app-managed storage.
+
+This edition does not include the GitHub Version Manager or GitHub token storage. Microsoft Store manages installation, updates, and removal. Microsoft may process Store account, installation, diagnostic, and usage information under its own privacy terms. Support reports you choose to submit to GitHub are public unless the chosen channel states otherwise. See privacy.md.
+
+Development has used substantial GPT-6.1SOL assistance. The creator is working alone, is inexperienced, and has no funding or development team. AI assistance does not guarantee correctness. The software itself does not generate systems using AI. See AI-DEVELOPMENT.md.
+
+Numbers use finite selected precision and truncate toward zero. No literal infinity is stored. Results can change with interval. Test exported code in your target engine; development Unity checks use an API stub. Bundled .NET libraries retain their own licenses and notices.
