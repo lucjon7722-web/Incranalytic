@@ -1,4 +1,11 @@
-# IFCLOUD 0.1
+# IFCLOUD code reference — Incranalytic
+
+**IFCLOUD 0.1** is the custom numeric rule language in **Incranalytic Studio,
+created by Kitarie**. This is its official language reference.
+
+New to IFCLOUD code? Start with the [first-module tutorial and examples](ifcloud-code.md).
+See [Incranalytic downloads and features](../README.md) or
+[the creator and project overview](about-incranalytic.md).
 
 IFCLOUD is Incranalytic's custom numeric rule language for workspace modules. It has C#-style braces, semicolons, assignments and conditions. It is interpreted as bounded numeric statements and does not compile or execute arbitrary C#, import libraries, or access operating-system services. Human authors supply all code.
 

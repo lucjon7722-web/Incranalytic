@@ -1,4 +1,15 @@
-# Store preparation status
+# Microsoft Store status and preparation history
+
+## Availability update — November 4, 2026
+
+Kitarie, the creator, has confirmed that **Incranalytic is officially available
+on the Microsoft Store**. The earlier preparation snapshot below predates
+publication and does not describe the current listing state.
+
+This update records availability; it does not retroactively supply missing test
+logs or certification records. Use Partner Center for the live submission state.
+
+## Historical preparation snapshot — November 3, 2026
 
 Updated November 3, 2026. The owner supplied the reserved Incranalytic app's
 Partner Center package identity. The assigned publisher display name is Kitarie.
@@ -21,7 +32,7 @@ Completed locally:
 - Runtime licenses/notices are now explicitly copied from the exact framework
   packages used in publishing, for both Store and future Inno setup builds.
 
-Still required:
+Outstanding at the time of this snapshot:
 
 - Confirm developer-account verification and any Partner Center requirements.
 - Actual MSIX installed activation, persistence, file access, coexistence,

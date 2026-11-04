@@ -1,7 +1,11 @@
 # Incranalytic — Store listing draft
 
-Status: not submitted. App name and publisher identity need Partner Center
-confirmation. No Store certification or verified-publisher badge is claimed.
+Historical pre-publication draft. On November 4, 2026, creator **Kitarie**
+confirmed that **Incranalytic is available on the Microsoft Store**. The
+checklist and reviewer notes below are retained as drafting history, not as a
+record of the current live listing or outstanding certification work.
+See the [availability update](preparation-status.md) and
+[project overview](../docs/about-incranalytic.md).
 
 ## Short description
 
