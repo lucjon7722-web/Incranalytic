@@ -6,6 +6,9 @@ Kitarie, the creator, has confirmed that **Incranalytic is officially available
 on the Microsoft Store**. The earlier preparation snapshot below predates
 publication and does not describe the current listing state.
 
+[Get Incranalytic from the Microsoft Store](https://apps.microsoft.com/detail/9nkdqhdljf78).
+For support, contact **Kitarie** at [Lpj2010@outlook.com](mailto:Lpj2010@outlook.com).
+
 This update records availability; it does not retroactively supply missing test
 logs or certification records. Use Partner Center for the live submission state.
 

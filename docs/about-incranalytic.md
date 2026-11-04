@@ -22,6 +22,8 @@ including incremental game progression.
 | Incranalytic GitHub repository | [lucjon7722-web/Incranalytic](https://github.com/lucjon7722-web/Incranalytic) |
 | IFCLOUD code tutorial | [First module and examples](ifcloud-code.md) |
 | IFCLOUD language documentation | [Language reference](IFCLOUD.md) |
+| Microsoft Store download | [Get Incranalytic](https://apps.microsoft.com/detail/9nkdqhdljf78) |
+| Contact Kitarie | [Lpj2010@outlook.com](mailto:Lpj2010@outlook.com) |
 | GitHub downloads | [Official releases](https://github.com/lucjon7722-web/Incranalytic/releases/latest) |
 | Questions and bug reports | [GitHub issues](https://github.com/lucjon7722-web/Incranalytic/issues) |
 

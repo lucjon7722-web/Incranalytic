@@ -12,6 +12,7 @@ calculation traces, then export C# with supporting runtimes for Unity.
 This is the official Incranalytic GitHub repository and home of the IFCLOUD
 language documentation.
 
+- [Get Incranalytic from the Microsoft Store](https://apps.microsoft.com/detail/9nkdqhdljf78)
 - [Learn IFCLOUD code: first module and examples](docs/ifcloud-code.md)
 - [IFCLOUD language reference](docs/IFCLOUD.md)
 - [About Incranalytic and Kitarie](docs/about-incranalytic.md)
@@ -29,8 +30,7 @@ those choices. There is no AI service, AI account requirement, or project upload
 
 ## Get Incranalytic
 
-**Microsoft Store:** Incranalytic is available on the Microsoft Store. Search
-for **Incranalytic** and check that the publisher is **Kitarie**.
+[**Get Incranalytic from the Microsoft Store**](https://apps.microsoft.com/detail/9nkdqhdljf78) — published by **Kitarie**.
 
 ### GitHub edition — 0.5.0
 
@@ -102,6 +102,11 @@ Studio source is **reserved source, not open source**. Viewing and local persona
 builds are permitted; studio redistribution requires separate permission. Read
 [studio terms](LICENSE), [export permission](EXPORT-LICENSE.txt), and
 [third-party notices](THIRD-PARTY-NOTICES.md).
+
+## Contact and support
+
+Contact **Kitarie**, the creator of Incranalytic, at [Lpj2010@outlook.com](mailto:Lpj2010@outlook.com).
+You can also [report bugs or ask questions on GitHub](https://github.com/lucjon7722-web/Incranalytic/issues).
 
 ## Build and checks
 

@@ -83,7 +83,7 @@ checks use a Unity API stub, not the Unity editor.
 
 ## Where to get Incranalytic
 
-Incranalytic is available on the Microsoft Store under publisher **Kitarie**.
+[Get Incranalytic from the Microsoft Store](https://apps.microsoft.com/detail/9nkdqhdljf78), published by **Kitarie**.
 The separate Windows GitHub edition is available from
 [official releases](https://github.com/lucjon7722-web/Incranalytic/releases/latest).
 
@@ -91,3 +91,6 @@ The separate Windows GitHub edition is available from
 - [IFCLOUD syntax, supported operators, and limits](IFCLOUD.md)
 - [About Incranalytic and its creator, Kitarie](about-incranalytic.md)
 - [Report an issue](https://github.com/lucjon7722-web/Incranalytic/issues)
+
+For questions about Incranalytic or IFCLOUD, contact **Kitarie** at
+[Lpj2010@outlook.com](mailto:Lpj2010@outlook.com).
