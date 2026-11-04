@@ -11,17 +11,33 @@ public sealed class WorkspacePane : UserControl
     readonly Button apply = new() { Text = "Apply block changes", AutoSize = true };
     readonly Stack<WorkspaceGraph> undo = new(), redo = new();
     readonly ToolStripMenuItem templates = new("Saved modules");
+    readonly SplitContainer split;
+    readonly ToolStrip toolbar;
+    readonly FlowLayoutPanel quickstart = new() { Location = new(28, 28), Width = 530, Height = 160, BackColor = Color.FromArgb(246, 244, 231), Padding = new(15), FlowDirection = FlowDirection.TopDown, WrapContents = false };
+    bool hintDismissed;
+    readonly Dictionary<string, string> liveCodeDrafts = [];
     bool editable = true;
     string resultCaption = "Run or Step to inspect calculations.";
     public event Action? Changed;
     public event Action<string>? Message;
+    public event Action? RecoveryChanged;
+    public event Action<Form?>? LanguageHelpRequested;
+    public bool HasCodeDraft => liveCodeDrafts.Count > 0;
     public WorkspaceGraph Graph => Canvas.Graph;
     static TextBox Field() => new() { Width = 275 };
     public WorkspacePane()
     {
         Dock = DockStyle.Fill;
-        var split = new SplitContainer { Dock = DockStyle.Fill, Size = new(1200, 600), SplitterDistance = 875, FixedPanel = FixedPanel.Panel2, Panel2MinSize = 290 };
+        split = new SplitContainer { Dock = DockStyle.Fill, Size = new(1200, 600), SplitterDistance = 875, FixedPanel = FixedPanel.Panel2, Panel2MinSize = 290 };
         split.Panel1.Controls.Add(Canvas);
+        Canvas.Controls.Add(quickstart);
+        quickstart.Controls.Add(new Label { Text = "Start your system", AutoSize = true, Font = new(Font, FontStyle.Bold) });
+        quickstart.Controls.Add(new Label { Text = "Place blocks, connect their ports, then Step to test your rules.", AutoSize = true });
+        var quickActions = new FlowLayoutPanel { Width = 495, Height = 43 };
+        void Quick(string caption, Action action) { var button = new Button { Text = caption, AutoSize = true }; button.Click += (_, _) => action(); quickActions.Controls.Add(button); }
+        Quick("Add input", () => AddNode("Input")); Quick("Add module", () => AddNode("Module"));
+        Quick("Try example", () => Change(() => { WorkspaceFiles.Insert(Graph, WorkspaceFiles.ExampleLoop(), 0, 0); Canvas.Fit(); }));
+        Quick("Dismiss", () => { hintDismissed = true; quickstart.Visible = false; }); quickstart.Controls.Add(quickActions);
         var props = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 300, Padding = new(8), FlowDirection = FlowDirection.TopDown, WrapContents = false };
         props.Controls.Add(kind);
         void Add(string caption, Control control) { props.Controls.Add(new Label { Text = caption, AutoSize = true }); props.Controls.Add(control); }
@@ -29,7 +45,7 @@ public sealed class WorkspacePane : UserControl
         var code = new Button { Text = "Edit IFCLOUD code…", Dock = DockStyle.Top, Height = 32 }; code.Click += (_, _) => Edit();
         var disconnect = new Button { Text = "Disconnect selected block", Dock = DockStyle.Top, Height = 30 }; disconnect.Click += (_, _) => Change(() => { if (Canvas.Selected is { } n) Graph.Edges.RemoveAll(e => e.From == n.Id || e.To == n.Id); });
         split.Panel2.Controls.Add(why); split.Panel2.Controls.Add(disconnect); split.Panel2.Controls.Add(code); split.Panel2.Controls.Add(props);
-        var toolbar = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden, BackColor = Color.FromArgb(239, 237, 225) };
+        toolbar = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden, BackColor = Color.FromArgb(239, 237, 225) };
         var add = new ToolStripDropDownButton("Add block");
         foreach (string type in new[] { "Input", "Module", "Previous", "Output" }) add.DropDownItems.Add(type == "Previous" ? "Previous step" : type, null, (_, _) => AddNode(type));
         toolbar.Items.Add(add); toolbar.Items.Add("Edit", null, (_, _) => Edit()); toolbar.Items.Add("Delete", null, (_, _) => Delete());
@@ -42,16 +58,26 @@ public sealed class WorkspacePane : UserControl
         systems.DropDownItems.Add("Import reusable system…", null, (_, _) => ImportSystem());
         systems.DropDownItems.Add("Export selected group or workspace…", null, (_, _) => ExportSystem()); toolbar.Items.Add(systems);
         toolbar.Items.Add("Insert example loop", null, (_, _) => Change(() => { var at = Canvas.CenterWorld; WorkspaceFiles.Insert(Graph, WorkspaceFiles.ExampleLoop(), at.X, at.Y); Canvas.Fit(); }));
+        toolbar.Items.Add("IFCLOUD help", null, (_, _) => LanguageHelpRequested?.Invoke(null));
         Controls.Add(split); Controls.Add(toolbar);
         Canvas.Changing += Checkpoint; Canvas.Changed += Notify; Canvas.SelectionChanged += Selection; Canvas.EditRequested += () => { if (Canvas.Selected == null) AddNode("Module"); else Edit(); }; Canvas.Message += s => Message?.Invoke(s);
         Canvas.KeyDown += (_, e) => { if (e.KeyCode == Keys.Delete) { Delete(); e.Handled = true; } };
         apply.Click += (_, _) => Change(() => { if (Canvas.Selected is not { } n) return; n.Title = title.Text; n.Group = group.Text; n.Literal = literal.Text; n.ValueSymbol = symbol.Text.Trim(); });
         Selection();
     }
-    public void SetGraph(WorkspaceGraph graph) { Canvas.Graph = graph; Canvas.Evaluation = null; undo.Clear(); redo.Clear(); Canvas.Select(null); RefreshTemplates(); Canvas.Fit(); }
+    public void ApplyPreferences(StudioPreferences preferences)
+    {
+        Canvas.ShowGrid = preferences.ShowGrid; Canvas.SnapToGrid = preferences.SnapToGrid; Canvas.ShowBlockValues = preferences.ShowBlockValues;
+        split.Panel2Collapsed = !preferences.ShowInspector; toolbar.ShowItemToolTips = preferences.ShowTooltips; Canvas.Invalidate();
+    }
+    public WorkspaceGraph RecoveryGraph()
+    {
+        var graph = WorkspaceFiles.Clone(Graph); foreach (var n in graph.Nodes) if (liveCodeDrafts.TryGetValue(n.Id, out var code)) n.Code = code; return graph;
+    }
+    public void SetGraph(WorkspaceGraph graph) { Canvas.Graph = graph; Canvas.Evaluation = null; undo.Clear(); redo.Clear(); Canvas.Select(null); RefreshTemplates(); Canvas.Fit(); quickstart.Visible = !hintDismissed && Graph.Nodes.Count == 0; }
     public void SetEditable(bool value) { editable = Canvas.Editable = value; apply.Enabled = value; title.ReadOnly = group.ReadOnly = literal.ReadOnly = symbol.ReadOnly = !value; }
     void Checkpoint() { undo.Push(WorkspaceFiles.Clone(Graph)); if (undo.Count > 50) { var keep = undo.Take(50).Reverse().ToArray(); undo.Clear(); foreach (var item in keep) undo.Push(item); } redo.Clear(); }
-    void Notify() { Canvas.Evaluation = null; resultCaption = "Edited model — Run or Step to inspect calculations."; Canvas.Invalidate(); Selection(); RefreshTemplates(); Changed?.Invoke(); }
+    void Notify() { quickstart.Visible = !hintDismissed && Graph.Nodes.Count == 0; Canvas.Evaluation = null; resultCaption = "Edited model — Run or Step to inspect calculations."; Canvas.Invalidate(); Selection(); RefreshTemplates(); Changed?.Invoke(); }
     void Change(Action action)
     {
         if (!editable) { Message?.Invoke("Reset simulation to edit the workspace."); return; }
@@ -81,11 +107,14 @@ public sealed class WorkspacePane : UserControl
         if (Canvas.Selected is not { } n) return;
         if (n.Kind != "Module") { Message?.Invoke("Edit this block's properties in the inspector, then Apply."); return; }
         using var d = new Form { Text = "IFCLOUD — " + n.Title, Width = 850, Height = 700, MinimumSize = new(650, 450), StartPosition = FormStartPosition.CenterParent };
-        var text = new RichTextBox { Dock = DockStyle.Fill, Text = n.Code, Font = new("Consolas", 11), AcceptsTab = true, WordWrap = false, DetectUrls = false };
-        var result = new Label { Dock = DockStyle.Bottom, Height = 70, Padding = new(8), Text = "Declare input/output ports first. Use if (...) { ... } else { ... }, let and assignments.\nSee the IFCLOUD Index tab for syntax and examples." };
+        var codeEditor = new IfcloudEditor(n.Code); var text = codeEditor.Source;
+        var result = new Label { Dock = DockStyle.Bottom, Height = 70, Padding = new(8), Text = "Declare input/output ports first. Use if (...) { ... } else { ... }, let and assignments.\nOpen Help → IFCLOUD Manual for syntax and examples." };
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 42 };
         var validate = new Button { Text = "Validate code", AutoSize = true }; validate.Click += (_, _) => { try { var p = IfcloudProgram.Parse(text.Text); result.Text = "Valid syntax · inputs: " + string.Join(", ", p.Inputs) + " · outputs: " + string.Join(", ", p.Outputs) + "\nRun the workspace to validate branches with real inputs."; } catch (Exception ex) { result.Text = ex.Message; } };
         var save = new Button { Text = "Apply valid code", AutoSize = true }; var draft = new Button { Text = "Save draft", AutoSize = true }; var cancel = new Button { Text = "Cancel", AutoSize = true };
+        bool explicitClose = false;
+        text.MaxLength = 32000;
+        text.TextChanged += (_, _) => { if (text.Text != n.Code) liveCodeDrafts[n.Id] = text.Text; else liveCodeDrafts.Remove(n.Id); RecoveryChanged?.Invoke(); };
         void Apply(bool requireValid)
         {
             try
@@ -93,12 +122,23 @@ public sealed class WorkspacePane : UserControl
                 if (text.Text.Length > 32000) throw new FormatException("Code exceeds 32,000 characters.");
                 IfcloudProgram? program = null; try { program = IfcloudProgram.Parse(text.Text); } catch { if (requireValid) throw; }
                 Change(() => { n.Code = text.Text; if (program != null) Graph.Edges.RemoveAll(e => e.To == n.Id && !program.Inputs.Contains(e.ToPort) || e.From == n.Id && !program.Outputs.Contains(e.FromPort)); });
-                d.Close();
+                explicitClose = true; d.Close();
             }
             catch (Exception ex) { result.Text = ex.Message; }
         }
-        save.Click += (_, _) => Apply(true); draft.Click += (_, _) => Apply(false); cancel.Click += (_, _) => d.Close();
-        buttons.Controls.AddRange([validate, save, draft, cancel]); d.Controls.Add(text); d.Controls.Add(result); d.Controls.Add(buttons); d.ShowDialog(this);
+        save.Click += (_, _) => Apply(true); draft.Click += (_, _) => Apply(false); cancel.Text = "Discard edits"; cancel.Click += (_, _) => { explicitClose = true; d.Close(); };
+        var manual = new Button { Text = "IFCLOUD Manual", AutoSize = true }; manual.Click += (_, _) => LanguageHelpRequested?.Invoke(d);
+        d.FormClosing += (_, e) =>
+        {
+            if (!explicitClose && text.Text != n.Code)
+            {
+                var answer = MessageBox.Show(d, "Save this code as a draft before closing?", "Unsaved code", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                if (answer == DialogResult.Cancel) { e.Cancel = true; return; }
+                if (answer == DialogResult.Yes) Change(() => n.Code = text.Text);
+            }
+        };
+        d.FormClosed += (_, _) => { liveCodeDrafts.Remove(n.Id); RecoveryChanged?.Invoke(); };
+        buttons.Controls.AddRange([validate, save, draft, manual, cancel]); d.Controls.Add(codeEditor); d.Controls.Add(result); d.Controls.Add(buttons); d.ShowDialog(this);
     }
     void RefreshTemplates()
     {

@@ -12,6 +12,8 @@ public static class UnityExport
         if (hasWorkspace && (ifcloudSource.Length == 0 || workspaceSource.Length == 0)) throw new InvalidOperationException("Workspace export requires the IFCLOUD and workspace runtimes.");
         if (Directory.Exists(folder)) throw new IOException("Export folder already exists. Choose a new destination.");
         Directory.CreateDirectory(folder);
+        using (var permission = new StreamReader(typeof(UnityExport).Assembly.GetManifestResourceStream("Incranalytic.ExportLicense")!))
+            File.WriteAllText(Path.Combine(folder, "EXPORT-LICENSE.txt"), permission.ReadToEnd());
         string Quote(string s) => JsonSerializer.Serialize(s);
         var symbols = string.Join(", ", project.Values.Select(v => Quote(v.Symbol)));
         var initials = string.Join(", ", project.Values.Select(v => Quote(v.Initial)));

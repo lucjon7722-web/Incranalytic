@@ -1,14 +1,14 @@
-#define AppVersion "0.4.0"
+#define AppVersion "0.5.0"
 [Setup]
 #ifdef TestBuild
 AppId={{9B32C142-B7D2-4635-A0D8-19D029D8D8C7}
 OutputDir=..\..\work\test-installer
-OutputBaseFilename=Incranalytic-0.4.0-TestSetup
+OutputBaseFilename=Incranalytic-0.5.0-TestSetup
 DefaultGroupName=Incranalytic Test
 #else
 AppId={{82D861BC-A02B-4C41-B9EA-2878D66918B3}
 OutputDir=..\..\outputs
-OutputBaseFilename=Incranalytic-0.4.0-Setup
+OutputBaseFilename=Incranalytic-0.5.0-Setup
 DefaultGroupName=Incranalytic
 #endif
 AppName=Incranalytic Studio
@@ -44,6 +44,10 @@ Source: "..\docs\IFCLOUD.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\samples\conditional-counter.incr"; DestDir: "{app}\examples"; Flags: ignoreversion
 Source: "{#ManagerFile}"; DestDir: "{app}\manager"; Flags: ignoreversion
 Source: "..\docs\version-manager.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}"; DestName: "Studio-Source-Terms.txt"; Flags: ignoreversion
+Source: "..\EXPORT-LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\THIRD-PARTY-NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\AI-DEVELOPMENT.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Incranalytic Studio"; Filename: "{app}\Incranalytic.exe"
@@ -59,6 +63,7 @@ var
   LanguagePage: TInputOptionWizardPage;
   CleanPrivateRuntime: Boolean;
   CleanPreferences: Boolean;
+  CleanRecovery: Boolean;
   RuntimeFiles: TArrayOfString;
 
 #ifndef TestBuild
@@ -77,16 +82,17 @@ end;
 function InitializeUninstall: Boolean;
 var
   Form: TSetupForm;
-  RemoveRuntime, RemoveSettings: TNewCheckBox;
+  RemoveRuntime, RemoveSettings, RemoveRecovery: TNewCheckBox;
   LabelText: TNewStaticText;
   OKButton, CancelButton: TNewButton;
 begin
   LoadStringsFromFile(ExpandConstant('{app}\runtime-files.txt'), RuntimeFiles);
   CleanPrivateRuntime := CompareText(ExpandConstant('{param:KEEPRUNTIME|0}'), '1') <> 0;
   CleanPreferences := ExpandConstant('{param:REMOVECACHE|0}') = '1';
+  CleanRecovery := ExpandConstant('{param:REMOVERECOVERY|0}') = '1';
   Result := True;
   if UninstallSilent then Exit;
-  Form := CreateCustomForm(ScaleX(540), ScaleY(240), False, True);
+  Form := CreateCustomForm(ScaleX(540), ScaleY(285), False, True);
   try
   Form.Caption := 'Uninstall Incranalytic - cleanup options';
   LabelText := TNewStaticText.Create(Form);
@@ -104,14 +110,19 @@ begin
   RemoveSettings.SetBounds(ScaleX(15), ScaleY(125), Form.ClientWidth - ScaleX(30), ScaleY(35));
   RemoveSettings.Caption := 'Also remove preferences, cache and saved GitHub token';
   RemoveSettings.Checked := False;
+  RemoveRecovery := TNewCheckBox.Create(Form); RemoveRecovery.Parent := Form;
+  RemoveRecovery.SetBounds(ScaleX(15), ScaleY(165), Form.ClientWidth - ScaleX(30), ScaleY(35));
+  RemoveRecovery.Caption := 'Also delete unsaved recovery copies (cannot be undone)';
+  RemoveRecovery.Checked := False;
   OKButton := TNewButton.Create(Form); OKButton.Parent := Form;
-  OKButton.SetBounds(ScaleX(290), ScaleY(195), ScaleX(110), ScaleY(28));
+  OKButton.SetBounds(ScaleX(290), ScaleY(240), ScaleX(110), ScaleY(28));
   OKButton.Caption := 'Uninstall'; OKButton.ModalResult := mrOk;
   CancelButton := TNewButton.Create(Form); CancelButton.Parent := Form;
-  CancelButton.SetBounds(ScaleX(410), ScaleY(195), ScaleX(110), ScaleY(28));
+  CancelButton.SetBounds(ScaleX(410), ScaleY(240), ScaleX(110), ScaleY(28));
   CancelButton.Caption := 'Cancel'; CancelButton.ModalResult := mrCancel; CancelButton.Cancel := True;
   Result := Form.ShowModal() = mrOk;
   CleanPrivateRuntime := RemoveRuntime.Checked; CleanPreferences := RemoveSettings.Checked;
+  CleanRecovery := RemoveRecovery.Checked;
   finally Form.Free(); end;
 end;
 
@@ -140,6 +151,12 @@ begin
       DeleteManagerCredential('Incranalytic/GitHubReleases', 1, 0);
       DeleteFile(ExpandConstant('{localappdata}\Incranalytic\preferences.json'));
       DelTree(ExpandConstant('{localappdata}\Incranalytic\cache'), True, True, True);
+      RemoveDir(ExpandConstant('{localappdata}\Incranalytic'));
+#endif
+    end;
+    if CleanRecovery then begin
+#ifndef TestBuild
+      DelTree(ExpandConstant('{localappdata}\Incranalytic\recovery'), True, True, True);
       RemoveDir(ExpandConstant('{localappdata}\Incranalytic'));
 #endif
     end;

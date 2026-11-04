@@ -6,8 +6,10 @@ internal static class Program
     static void Main(string[] args)
     {
         ApplicationConfiguration.Initialize();
-        var form = new StudioForm();
-        if (args.Length == 2 && args[0] == "--verify-studio")
+        bool verify = args.Length == 2 && args[0] == "--verify-studio";
+        var profile = verify ? new Incranalytic.Core.StudioProfile(Path.Combine(Path.GetTempPath(), "Incranalytic-UiProfile-" + Guid.NewGuid().ToString("N"))) : null;
+        var form = new StudioForm(profile, interactiveStartup: !verify);
+        if (verify)
             form.Shown += (_, _) => form.BeginInvoke(new Action(() =>
             {
                 try { form.VerifyStudio(args[1]); }

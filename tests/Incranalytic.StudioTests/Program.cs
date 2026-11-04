@@ -43,4 +43,41 @@ File.WriteAllText(Path.Combine(exported, "Program.cs"), "using System; class Pro
 using var proc = Process.Start(new ProcessStartInfo("dotnet", "run --project \"" + Path.Combine(exported, "ExportCheck.csproj") + "\"") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false })!;
 string output = proc.StandardOutput.ReadToEnd(); string error = proc.StandardError.ReadToEnd(); proc.WaitForExit(); Console.WriteLine(output); if (proc.ExitCode != 0) throw new Exception(error + output);
 Check(proc.ExitCode == 0, "Generated C# compiles as C#9 and matches studio Step/Reset/FixedUpdate with Unity API stub");
+Check(File.ReadAllText(Path.Combine(exported, "EXPORT-LICENSE.txt")).Contains("commercial games"), "Exports include personal and commercial runtime redistribution permission");
+var oversized = new StudioProject { Workspace = new WorkspaceGraph { Nodes = Enumerable.Range(0, 110).Select(_ => new WorkspaceNode { Kind = "Module", Code = new string('\u0001', 32000) }).ToList() } };
+string originalSaved = File.ReadAllText(model);
+Reject(() => oversized.Save(model), "Oversized draft cannot replace a readable saved project");
+Check(File.ReadAllText(model) == originalSaved && !Directory.GetFiles(temp, "*.tmp").Any(), "Rejected oversized save preserves the original and removes temporary data");
+string profileRoot = Path.Combine(temp, "profile");
+var profile = new StudioProfile(profileRoot);
+Check(profile.Preferences.EnableRecovery && !profile.Preferences.ShowSimulationSettings && !profile.Preferences.HasSeenWelcome, "First launch defaults enable recovery, hide advanced settings, and offer the guide");
+profile.Preferences.ShowGrid = false; profile.Preferences.HasSeenWelcome = true; profile.Save();
+Check(!new StudioProfile(profileRoot).Preferences.ShowGrid && new StudioProfile(profileRoot).Preferences.HasSeenWelcome, "View and onboarding preferences persist");
+File.WriteAllText(Path.Combine(profileRoot, "preferences.json"), "{broken");
+Check(new StudioProfile(profileRoot).Warning != null && new StudioProfile(profileRoot).Preferences.EnableRecovery, "Corrupt preferences fall back to safe defaults");
+using (var active = new RecoveryStore(profileRoot))
+{
+    active.Write(p, model);
+    using var observer = new RecoveryStore(profileRoot);
+    Check(observer.FindAvailable().Count == 0, "Recovery does not offer another active window's work");
+}
+using (var restored = new RecoveryStore(profileRoot))
+{
+    var candidates = restored.FindAvailable();
+    Check(candidates.Count == 1 && candidates[0].Snapshot.Project.Values[0].Name == "Stars", "Closed session recovery retains authored values and original path");
+    Check(candidates[0].Snapshot.OriginalPath == model && File.ReadAllText(model).Contains("Stars"), "Recovery leaves the original saved project intact");
+    restored.Claim(candidates[0]);
+    using var other = new RecoveryStore(profileRoot);
+    Check(other.FindAvailable().Count == 0, "Claimed recovery is hidden from other windows");
+    restored.Write(p, model);
+    Reject(() => restored.Write(oversized, model), "Oversized recovery cannot replace the previous checkpoint");
+    var invalid = new StudioProject { Values = [new() { Symbol = "bad symbol" }] };
+    Reject(() => restored.Write(invalid, model), "Invalid recovery write is rejected before replacing an earlier copy");
+    Check(Directory.GetFiles(Path.Combine(profileRoot, "recovery"), "snapshot-*.json").Length == 2, "Failed write preserves both earlier recovery copies");
+    Reject(() => other.Claim(new(Path.Combine(temp, "snapshot-" + new string('a', 32) + ".json"), new())), "Recovery cannot claim a file outside its profile");
+    restored.ClearCurrent();
+    Check(Directory.GetFiles(Path.Combine(profileRoot, "recovery"), "snapshot-*.json").Length == 0, "Saving or discarding removes only the current and claimed recovery copies");
+}
+File.WriteAllText(Path.Combine(profileRoot, "recovery", "snapshot-" + new string('b', 32) + ".json"), "{broken");
+using (var scan = new RecoveryStore(profileRoot)) Check(scan.FindAvailable().Count == 0, "Malformed recovery is ignored without preventing startup");
 Console.WriteLine($"{checks} studio checks passed. Export validation folder: {exported}");

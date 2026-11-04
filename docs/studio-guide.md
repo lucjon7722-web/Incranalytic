@@ -1,4 +1,4 @@
-# Incranalytic Studio 0.4
+# Incranalytic Studio 0.5
 
 Start in **Workspace**, a pannable/zoomable grid for building conditional systems. Add blocks from the toolbar, move them by dragging, and connect right-side output ports to left-side input ports. Middle/right drag pans; the wheel zooms. Fit brings the scene into view.
 
@@ -6,7 +6,7 @@ Start in **Workspace**, a pannable/zoomable grid for building conditional system
 
 Use **Insert example loop** to try a counter that increments to ten and then holds. The first table row is a labeled preview; it does not commit state. Completed ticks output 1, 2, ..., 10. Previous-step blocks make feedback timing explicit. Same-tick cycles require a Previous-step boundary.
 
-Read **IFCLOUD Index** inside the app, or the installed `IFCLOUD.md`. The language supports numeric input/output declarations, local variables, assignments, if/else, comparisons, Boolean conditions, arithmetic and min/max/abs. It does not execute host C#, external libraries or operating-system commands. Creators write the rules; the software has no AI system generation.
+Read **Help → IFCLOUD Manual** inside the app, or the installed `IFCLOUD.md`. The language supports numeric input/output declarations, local variables, assignments, if/else, comparisons, Boolean conditions, arithmetic and min/max/abs. It does not execute host C#, external libraries or operating-system commands. Creators write the rules; the software has no AI system generation.
 
 Select a block during or after simulation for **Why this number?**: its actual wire inputs, condition results, assignments and outputs. Values snapshot and pending memory are shown where applicable. The record is from the last successful tick. A failure commits no Values changes or feedback memory.
 
@@ -27,3 +27,15 @@ The offline installer includes private Microsoft .NET 10 / Windows Forms depende
 Desmos, third-party plugins, arbitrary C# imports and a complete game exporter remain future work. Source licensing and preview terms need review before commercial distribution. Studio projects stay local, with no telemetry or online AI provider. The optional Version Manager accesses GitHub for release listings and downloads; private access requires a user-provided token. Development has used AI assistance.
 
 Use Help → Install / manage versions or the Start menu Version Manager to choose releases. You can also keep the standalone Incranalytic-Installer.exe. See version-manager.md for private repository access, credential controls, and downgrade compatibility.
+
+## Navigation and getting started
+
+Use the left sidebar for the five work views. Help opens separate searchable System and IFCLOUD manuals and the Getting started walkthrough. The first launch shows the walkthrough; loading its example is optional. The blank-workspace card offers input, module and example actions. IFCLOUD editor checkboxes toggle line numbers and keyword colors.
+
+## View options and recovery
+
+View toggles grid, snapping, live block values, inspector, tooltips, automatic recovery and simulation settings. Simulation settings start hidden. Preferences persist for the current Windows account. Local recovery starts enabled and checks for changes every 30 seconds, including open code drafts. Snapshots stay in LocalAppData/Incranalytic/recovery, separate from saved projects. After interruption the studio offers available copies; File → Recover unsaved work reopens the chooser. Saving or explicitly discarding clears this window’s recovery. Recovery is a periodic checkpoint, so use Save or Save draft for immediate preservation. Other active studio windows retain their own recovery. Uninstall preserves unsaved recovery unless its separate removal option is checked.
+
+## Export rights
+
+Exports and required runtime files can be used, modified and distributed in personal or commercial systems under EXPORT-LICENSE.txt, which accompanies each export. Studio source uses separate reserved terms.

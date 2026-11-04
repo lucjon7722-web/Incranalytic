@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Keep developer machine paths out of public binary debug metadata. -->
+    <PathMap>$(MSBuildThisFileDirectory)=/_/Incranalytic/</PathMap>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

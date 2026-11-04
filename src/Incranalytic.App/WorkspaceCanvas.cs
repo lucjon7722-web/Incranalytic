@@ -12,6 +12,7 @@ public sealed class WorkspaceCanvas : Control
     public WorkspaceEvaluation? Evaluation { get; set; }
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public bool Editable { get; set; } = true;
+    public bool ShowGrid = true, SnapToGrid = true, ShowBlockValues = true;
     public WorkspaceNode? Selected { get; private set; }
     public event Action? Changing, Changed, SelectionChanged, EditRequested;
     public event Action<string>? Message;
@@ -56,8 +57,10 @@ public sealed class WorkspaceCanvas : Control
         base.OnPaint(e); var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias;
         float spacing = 32 * zoom;
         using var grid = new Pen(Color.FromArgb(221, 222, 214));
-        for (float x = pan.X % spacing; x < Width; x += spacing) g.DrawLine(grid, x, 0, x, Height);
-        for (float y = pan.Y % spacing; y < Height; y += spacing) g.DrawLine(grid, 0, y, Width, y);
+        if (ShowGrid) {
+            for (float x = pan.X % spacing; x < Width; x += spacing) g.DrawLine(grid, x, 0, x, Height);
+            for (float y = pan.Y % spacing; y < Height; y += spacing) g.DrawLine(grid, 0, y, Width, y);
+        }
         g.TranslateTransform(pan.X, pan.Y); g.ScaleTransform(zoom, zoom);
         var viewport = new RectangleF(-pan.X / zoom, -pan.Y / zoom, Width / zoom, Height / zoom);
         using var groupPen = new Pen(Color.FromArgb(153, 165, 151), 1) { DashStyle = DashStyle.Dash };
@@ -89,7 +92,7 @@ public sealed class WorkspaceCanvas : Control
             foreach (var name in ports.Inputs) { var p = Port(n, name, false); g.FillEllipse(Brushes.SteelBlue, p.X - 6, p.Y - 6, 12, 12); g.DrawString(name, Font, Brushes.Black, p.X + 10, p.Y - 8); }
             foreach (var name in ports.Outputs) { var p = Port(n, name, true); g.FillEllipse(Brushes.DarkOliveGreen, p.X - 6, p.Y - 6, 12, 12); var width = g.MeasureString(name, Font).Width; g.DrawString(name, Font, Brushes.Black, p.X - width - 10, p.Y - 8); }
             string summary = n.Kind == "Input" ? (n.ValueSymbol.Length > 0 ? "Values: " + n.ValueSymbol : n.Literal) : n.Kind == "Previous" ? "Previous step · initial " + n.Literal : n.Kind == "Module" ? "IFCLOUD · double-click to code" : "Recorded in table and graph";
-            if (Evaluation != null && Evaluation.Outputs.TryGetValue(n.Id, out var output)) summary = string.Join(" · ", output.Select(p => p.Key + "=" + p.Value));
+            if (ShowBlockValues && Evaluation != null && Evaluation.Outputs.TryGetValue(n.Id, out var output)) summary = string.Join(" · ", output.Select(p => p.Key + "=" + p.Value));
             g.DrawString(summary, Font, Brushes.DimGray, new RectangleF(b.X + 8, b.Bottom - 25, b.Width - 16, 22));
         }
         g.ResetTransform();
@@ -121,7 +124,7 @@ public sealed class WorkspaceCanvas : Control
             Changing?.Invoke(); Graph.Edges.RemoveAll(edge => edge.To == to.Node.Id && edge.ToPort == to.Port);
             Graph.Edges.Add(new WorkspaceEdge { From = from.Node.Id, FromPort = from.Port, To = to.Node.Id, ToPort = to.Port }); Changed?.Invoke(); Message?.Invoke("Connected. Use Previous-step for feedback loops.");
         }
-        if (dragging && moved && Selected != null) { Selected.X = (float)Math.Round(Selected.X / 32) * 32; Selected.Y = (float)Math.Round(Selected.Y / 32) * 32; Changed?.Invoke(); }
+        if (dragging && moved && Selected != null) { if (SnapToGrid) { Selected.X = (float)Math.Round(Selected.X / 32) * 32; Selected.Y = (float)Math.Round(Selected.Y / 32) * 32; } Changed?.Invoke(); }
         wire = null; panning = dragging = false; Capture = false; Invalidate();
     }
     protected override void OnMouseWheel(MouseEventArgs e)
@@ -134,7 +137,7 @@ public sealed class WorkspaceCanvas : Control
     {
         var input = new WorkspaceNode { Kind = "Input", X = 0, Y = 0 };
         var output = new WorkspaceNode { Kind = "Output", X = 360, Y = 0 };
-        Graph = new WorkspaceGraph { Nodes = [input, output] }; Editable = true; pan = new(80, 100); zoom = 1;
+        Graph = new WorkspaceGraph { Nodes = [input, output] }; Editable = true; SnapToGrid = true; pan = new(80, 100); zoom = 1;
         OnMouseDown(new MouseEventArgs(MouseButtons.Left, 1, 320, 149, 0));
         OnMouseMove(new MouseEventArgs(MouseButtons.Left, 0, 440, 149, 0));
         OnMouseUp(new MouseEventArgs(MouseButtons.Left, 1, 440, 149, 0));

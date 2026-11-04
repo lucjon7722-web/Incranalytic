@@ -1,0 +1,26 @@
+Incranalytic Studio — reserved source and application terms
+Copyright (c) 2026 Incranalytic contributors. All rights reserved.
+
+The studio source is published for transparency and inspection. You may view it
+and build or modify a local copy for your own use and evaluation. This is not an
+open-source license. No permission is granted to distribute the studio source,
+modified studio builds, or studio binaries, or to sell or sublicense the studio,
+except with separate permission from the relevant rights holders. Official
+published application builds may be downloaded, installed, and used without a
+fee to design and test personal or commercial systems.
+
+Your authored systems remain yours, subject to any rights in imported material.
+Exports and their required runtime files have separate permissions in
+EXPORT-LICENSE.txt. Those permissions expressly allow commercial distribution.
+Third-party components retain their own licenses; see THIRD-PARTY-NOTICES.md
+and notices supplied with the application. These terms do not override them.
+
+The software supports education, experimentation, and human-authored system
+design. You are responsible for your actions, authored rules, imported material,
+and integration and testing of exports. No ownership of your projects is claimed.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+NONINFRINGEMENT. TO THE EXTENT PERMITTED BY LAW, THE RIGHTS HOLDERS ARE NOT
+LIABLE FOR CLAIMS OR DAMAGES ARISING FROM ITS USE. MANDATORY LEGAL RIGHTS
+REMAIN UNAFFECTED.

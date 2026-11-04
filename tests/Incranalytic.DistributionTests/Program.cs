@@ -67,6 +67,14 @@ using (var interrupted = new ReleaseClient(new HttpClient(new Stub(r => r.Reques
     await Reject(() => interrupted.DownloadVerifiedAsync(release, "", interruptedFolder, null, default), "Interrupted download stops without an installer");
     Check(Directory.GetFiles(interruptedFolder, "*", SearchOption.AllDirectories).Length == 0, "Interrupted stream removes its partial file");
 }
+if (args.Contains("--public-live"))
+{
+    using var publicClient = new ReleaseClient(); var publicReleases = await publicClient.ListAsync("", false, default);
+    Check(publicReleases.Any(r => r.Tag == "v0.5.0"), "Public catalog lists 0.5.0 without credentials");
+    var selected = publicReleases.Single(r => r.Tag == "v0.5.0");
+    string publicFile = await publicClient.DownloadVerifiedAsync(selected, "", directory, null, default);
+    Check(new FileInfo(publicFile).Length == selected.Installer.Size, "Public 0.5.0 download passes size and SHA-256 checks without credentials");
+}
 if (args.Contains("--live"))
 {
     string token = Console.In.ReadToEnd().Trim(); if (token.Length == 0) throw new Exception("Live test requires authentication on standard input.");

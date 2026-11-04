@@ -1,0 +1,28 @@
+Incranalytic export and runtime permission
+Copyright (c) 2026 Incranalytic contributors.
+
+Your authored values, formulas, IFCLOUD rules, models, and project data remain
+yours, subject to any rights in imported material. Incranalytic claims no
+ownership of those creations.
+
+Permission is granted, free of charge, to use, copy, modify, merge, publish,
+distribute, sublicense, and sell exported systems and the Incranalytic runtime
+files necessary to run them, in source or compiled form, for any purpose,
+including personal and commercial games and applications.
+
+The runtime files covered by this grant are ScientificNumber.cs, Ifcloud.cs,
+and WorkspaceRuntime.cs, including copies embedded in or emitted by the studio.
+Generated integration code such as IncranalyticSystem.cs is also covered.
+Keep this permission and copyright notice with redistributed runtime source
+or in your application's third-party notices when distributing compiled code.
+Modified copies may be distributed under your own terms provided this notice
+and the original grant remain available for the Incranalytic-derived portions.
+
+This grant does not license the studio interface, installer, version manager,
+or other studio source. Third-party material retains its own license.
+
+THE COVERED MATERIAL IS PROVIDED "AS IS", WITHOUT EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+AND NONINFRINGEMENT. TO THE EXTENT PERMITTED BY LAW, THE RIGHTS HOLDERS
+ARE NOT LIABLE FOR CLAIMS OR DAMAGES ARISING FROM ITS USE. MANDATORY
+LEGAL RIGHTS REMAIN UNAFFECTED.

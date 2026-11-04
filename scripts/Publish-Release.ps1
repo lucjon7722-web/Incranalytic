@@ -11,7 +11,7 @@ if (!$Commit) { $Commit = (git -C $repo rev-parse HEAD).Trim() }
 if ($Commit -notmatch '^[a-fA-F0-9]{40}$') { throw 'Release requires an exact tested commit.' }
 $tag = 'v' + $Version
 $api = 'https://api.github.com/repos/lucjon7722-web/Incranalytic'
-$assets = @("Incranalytic-$Version-Setup.exe", "Incranalytic-$Version-Setup.sha256", 'Incranalytic-Installer.exe', 'Incranalytic-Installer.sha256', 'Version-Manager-Guide.md')
+$assets = @("Incranalytic-$Version-Setup.exe", "Incranalytic-$Version-Setup.sha256", 'Incranalytic-Installer.exe', 'Incranalytic-Installer.sha256', 'Version-Manager-Guide.md', "Incranalytic-$Version-verification.txt")
 foreach ($name in $assets) { if (!(Test-Path -LiteralPath (Join-Path $outputs $name))) { throw "Missing release asset: $name" } }
 $notes = Get-Content -LiteralPath $NotesFile -Raw
 $env:GIT_TERMINAL_PROMPT = '0'
@@ -24,7 +24,7 @@ try {
     $headers = @{ Authorization=('Bearer ' + $passwordLine.Substring(9)); Accept='application/vnd.github+json'; 'X-GitHub-Api-Version'='2022-11-28'; 'User-Agent'='Incranalytic-Release' }
     $release = @(Invoke-RestMethod -Uri ($api + '/releases') -Headers $headers) | Where-Object tag_name -EQ $tag | Select-Object -First 1
     if (!$release) {
-        $body = @{ tag_name=$tag; target_commitish=$Commit; name="Incranalytic Studio $Version - Reusable Installer"; body=$notes; draft=$true; prerelease=$false } | ConvertTo-Json
+        $body = @{ tag_name=$tag; target_commitish=$Commit; name="Incranalytic Studio $Version"; body=$notes; draft=$true; prerelease=$false } | ConvertTo-Json
         $release = Invoke-RestMethod -Uri ($api + '/releases') -Method Post -Headers $headers -ContentType 'application/json' -Body $body
     }
     try { $reference = Invoke-RestMethod -Uri ($api + '/git/ref/tags/' + $tag) -Headers $headers }

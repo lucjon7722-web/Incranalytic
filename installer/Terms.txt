@@ -1,11 +1,15 @@
-INCRANALYTIC STUDIO 0.4 - DEVELOPMENT PREVIEW
+INCRANALYTIC STUDIO 0.5.0 - PUBLIC DEVELOPMENT RELEASE
 
-Incranalytic supports education and human-authored system design. You are responsible for your use, your authored rules, and the permissions required for imported material and distributed exports.
+Incranalytic supports education, experimentation, and human-authored system design. You are responsible for your actions, authored rules, imported material, and testing exports. Your projects remain yours, subject to rights in imported material.
 
-Provided as-is, without guarantees of correctness, completeness, fitness, or uninterrupted operation, to the extent permitted by applicable law. Mandatory legal rights remain unaffected. Verify simulations and exported code before relying on them. These preview terms require legal review before a public commercial release.
+Official builds may be installed and used without a fee for personal or commercial system design. Studio source is viewable under reserved terms, not an open-source license. Studio redistribution requires separate permission. See Studio-Source-Terms.txt. Exports and required runtime files may be used, modified, and distributed in personal and commercial projects under EXPORT-LICENSE.txt.
 
-Privacy: Studio projects stay local; the studio has no telemetry or AI generation service. The optional Version Manager contacts GitHub for release listings and installer downloads. Private access requires a user-provided token, optionally saved for this Windows account in Windows Credential Manager. Forget removes saved access. Development has used AI assistance.
+Provided AS IS, without express or implied warranties, including correctness, merchantability, fitness, or noninfringement. To the extent permitted by law, rights holders are not liable for claims or damages arising from use. Mandatory legal rights remain unaffected.
 
-Numerical precision is finite and user-selected. Operations truncate toward zero. Very large exponents are supported subject to memory and input limits. No literal infinity is stored. Fixed-step simulation may change with the chosen interval.
+Projects and calculations stay local. Local automatic recovery starts enabled. The studio has no telemetry or AI generation service. The optional Version Manager contacts GitHub for releases/downloads. Public access needs no token. Optional private access can be remembered in Windows Credential Manager and removed with Forget. Recovery deletion is a separate optional uninstall choice; saved projects are preserved.
 
-The included Microsoft .NET runtime and Windows Forms libraries retain their own licenses and third-party notices, included with the installation. Source code licensing has not yet been selected. User-created systems remain the user's work.
+Development has used substantial GPT-6.1SOL assistance. The solo creator is inexperienced and has no funding or team. Assistance makes implementation and testing feasible; it does not guarantee correctness. Users author their systems themselves. See AI-DEVELOPMENT.md.
+
+Numbers use finite selected precision, truncate toward zero, and support large exponents within memory/input limits. No literal infinity is stored. Results can change with interval. Test Unity integration in your game; development export checks use an API stub.
+
+Bundled Microsoft .NET and Windows Forms libraries retain their own licenses and notices. See THIRD-PARTY-NOTICES.md. Installer and application are unsigned.

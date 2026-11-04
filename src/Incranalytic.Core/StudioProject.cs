@@ -45,7 +45,11 @@ public sealed class StudioProject
         try
         {
             using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            { JsonSerializer.Serialize(stream, this, new JsonSerializerOptions { WriteIndented = true }); stream.Flush(true); }
+            {
+                JsonSerializer.Serialize(stream, this, new JsonSerializerOptions { WriteIndented = true });
+                if (stream.Position > 20_000_000) throw new FormatException("Project exceeds the 20 MB file limit. Reduce code or project data before saving.");
+                stream.Flush(true);
+            }
             if (File.Exists(target)) File.Copy(target, target + ".bak", true);
             File.Move(temporary, target, true);
         }

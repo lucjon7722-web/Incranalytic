@@ -1,91 +1,111 @@
-# Incranalytic
+# Incranalytic Studio
 
-A Windows studio for people to create, visualize, and test incremental systems, then export scripts or code for their game or application. Users define the values, rules, formulas, and relationships.
+A classic Windows desktop studio for **human-authored incremental systems**.
+Define values, write formulas and conditional IFCLOUD code, connect blocks, and
+test loops through simulation, tables, graphs, and calculation traces. Export
+C# for Unity when you are ready to integrate.
 
-## Purpose and authorship
+**Development transparency:** This software has been made with substantial
+assistance from **GPT-6.1SOL** through Codex. Its creator is working alone, is
+inexperienced, and has no project funding or development team. AI assistance
+makes building and testing the studio feasible. It does not make results
+automatically correct. Read [how it is made](docs/AI-DEVELOPMENT.md).
 
-Incranalytic supports human creativity and reasoning. Its purpose is not to use AI to generate incremental game systems. People author their mechanics and make the design decisions; the tools calculate, simulate, visualize, and help them test those decisions.
+**The studio does not use AI to generate systems.** People author every rule,
+formula, connection, and design decision. The software executes and visualizes
+those choices. There is no AI service, AI account requirement, or project upload.
 
-The core workflow does not require an AI model, an AI account, or sending a project to an AI service. This repository has used AI-assisted software development. That process is disclosed separately from the functionality offered to users.
+## Install 0.5.0
 
-## Intended experience
+Windows 10/11 x64. Download from [official releases](https://github.com/lucjon7722-web/Incranalytic/releases/latest):
 
-- Start with a fresh, untouched system or import an existing compatible system. Supported import formats remain to be defined.
-- Edit one system through connected structured fields, typed formulas, and nodes.
-- Define named values, currencies, generators, costs, upgrades, timers, milestones, and resets.
-- Write formulas with an index of supported words, functions, variables, units, and examples that explains what users can type.
-- See graphs, tables, charts, and dependency diagrams connected to the same authored system.
-- Change a parameter and inspect its effects across levels, time, or selected scenarios.
-- Test expectations and inspect the calculation steps and assumptions behind each result.
-- Save and share editable systems with their rules intact.
-- Export authored systems as scripts or code for a target game engine. Target languages and integration contracts remain to be selected; export should preserve tested behavior.
-- Work in an original classic desktop interface inspired by tools such as Ghidra.
+- **Incranalytic-0.5.0-Setup.exe** installs this version offline with its private .NET runtime.
+- **Incranalytic-Installer.exe** is the reusable Version Manager. Keep it to choose future or older versions. Public releases need no GitHub token.
 
-These are product goals, not claims that the current application already implements them.
+Setup includes English language selection, terms, destination and shortcut
+choices, Installed Apps registration, and an uninstaller. No Unity installation
+is needed to use the studio. Builds are unsigned. Save and close the studio
+before replacing it. See [installation and version management](docs/version-manager.md).
 
-## Version 0.4 — reusable installer / Version Manager
+## What 0.5.0 includes
 
-Keep `Incranalytic-Installer.exe` to select and install published studio versions without downloading a new launcher for every release. Studio setup also installs it under **Help → Install / manage versions** and a Start menu shortcut. The selected version is downloaded, size/SHA-256 checked, then opened in the normal setup wizard. This manages one studio installation at a time and supports choosing older versions.
+- A left sidebar for Workspace, Values, Simulation Table, Graph, and Dependencies.
+- Separate searchable **System Manual** and **IFCLOUD Manual** windows under Help.
+- A first-run walkthrough with an optional example loop; reopen it through Help.
+- View toggles for grid, snapping, live block values, inspector, tooltips, recovery, and simulation settings. Advanced settings start hidden.
+- A dismissible blank-workspace quickstart and IFCLOUD editor line numbers/keyword colors.
+- Local recovery enabled by default, checked every 30 seconds for changed projects and open code drafts. Recovery never overwrites saved projects. Available copies are offered after interruption or through File.
+- Save/Save as, unsaved-change prompts, atomic project replacement, and previous-file .bak backups.
 
-The current GitHub repository is private. The manager requires a repository-scoped GitHub token with Contents: Read; browser cookies are not reused. Remembering is opt-in through Windows Credential Manager. No token is embedded in software, written to projects or forwarded to download redirects. Read [Version Manager access and behavior](docs/version-manager.md).
+## Authoring and simulation
 
-Version 0.4's offline setup remains available for installing that specific version directly. The reusable manager includes its own runtime so it can operate independently of the installed studio. The studio remains offline; only the manager requests release data and assets from GitHub.
+Start blank or import a compatible .incr project. Values are user-defined,
+case-sensitive symbols: A can mean coins, production, or anything else.
+Structured initial values and gain formulas are optional alongside the workspace.
 
-## Workspace and IFCLOUD (introduced in 0.3)
+Place Input, Module, Previous-step memory, and Output blocks. Write IFCLOUD
+rules with C#-style declarations, arithmetic, conditions, and assignments.
+IFCLOUD is a bounded custom language, not arbitrary C# execution. Group blocks,
+save reusable module templates (.ifcloud), and import/export groups or systems
+(.ifgraph). **Why this number?** shows actual inputs, conditions, branch decisions,
+assignments, and outputs.
 
-The studio now starts in a large pannable/zoomable grid workspace. Place Input, Module, Previous-step and Output blocks; drag their ports to wire them together. Modules contain human-authored IFCLOUD code. Its C#-style conditionals, declarations and numeric assignments control the system. A built-in IFCLOUD Index explains every supported construct.
+Run, Pause, Step, and Reset share the table and graph. Choose a fixed interval
+and per-second or per-tick Values gains. Values read previous state and update
+together; workspace feedback uses explicit Previous-step memory. Projects save
+the authored model, not a live simulation session.
 
-The inspector's **Why this number?** view shows real execution records: wire inputs, conditions, branch decisions, assignments, outputs and memory. Group related blocks, save module templates, and export/import reusable groups or entire systems. Workspace outputs use the same Run/Pause/Step/Reset controls, simulation table and graph as Values.
+Scientific arithmetic supports 1–1,000 significant digits and arbitrary-size
+integer exponents, subject to memory and input limits. Operations truncate
+toward zero; there is no literal infinity or infinite precision. Powers require
+integer exponents. The graph uses positive log10 values and sample index; it
+omits nonpositive/out-of-range points. The table retains values and elapsed time.
+History is limited to 2,001 samples and approximately 100,000 signal cells.
+Projects support up to 500 Values and 500 blocks.
 
-An included conditional counter demonstrates an explicit feedback loop. Use Previous-step to hold state between ticks; unbroken same-tick cycles are rejected. The first row is labeled preview and does not advance memory. Projects can save unfinished code/wiring; executable validation is required for Run and Unity export. Saving uses an atomic replacement and retains the previous file as `.bak`.
+Unity C# export includes the same arithmetic/interpreter/workspace runtimes.
+Exports and required runtime files may be used, modified, and distributed in
+personal and commercial games or applications under [export permission](EXPORT-LICENSE.txt).
+Test integration in your Unity project. Import does not decompile APKs or
+arbitrary compiled scripts. Specialized event nodes, Desmos, user-created
+plugins, and other engine targets remain future ideas.
 
-Read [the IFCLOUD language and workspace guide](docs/IFCLOUD.md). Unity export includes the same interpreter and workspace runtime; actual Unity editor integration still needs testing.
+Read [the studio guide](docs/studio-guide.md), [IFCLOUD reference](docs/IFCLOUD.md),
+and [0.5 release notes](docs/releases/0.5.0.md).
 
-## Base capabilities
+## Privacy, source, and ownership
 
-Implemented in the development build:
+Projects, calculations, preferences, and recovery stay local. The studio has no
+telemetry or online AI provider. Only the optional Version Manager contacts
+GitHub for release metadata/downloads. Private access starts off; remembering a
+token is optional through Windows Credential Manager.
 
-- Blank Values sheet with user-defined, case-sensitive symbols and meanings.
-- Structured initial values and editable gain formulas; optional example system.
-- User-selected intervals and per-second or per-tick updates.
-- Run, Pause, Step, Reset; simultaneous updates from the previous state.
-- Scientific arithmetic with 1–1,000 selected significant digits and arbitrary-size integer exponents, subject to memory and input limits. Operations truncate toward zero; this is not infinite storage or infinite precision.
-- Simulation table, positive-value logarithmic graph, formula dependency diagram and connection editor.
-- Searchable index and guide, project save/import, simulation CSV export.
-- C# export for Unity with the same arithmetic and fixed-step simulation rules.
-- Offline Windows x64 installer, English language page, terms, destination/shortcut choices, Windows Installed Apps registration, and an uninstaller with optional private-runtime cleanup.
+Your authored systems remain yours, subject to imported material's rights.
+Studio source is **reserved source, not open source**. Viewing and local personal
+builds are permitted; studio redistribution requires separate permission. Read
+[studio terms](LICENSE), [export permission](EXPORT-LICENSE.txt), and
+[third-party notices](THIRD-PARTY-NOTICES.md).
 
-History retains up to 2,001 samples and approximately 100,000 signal cells; graphs omit nonpositive or out-of-range plotted values. Projects support 500 Values and 500 workspace blocks. Powers require integer exponents. Specialized event nodes, arbitrary C# script import, Desmos, and third-party plugins remain future work. Project import means the `.incr` format; reusable modules use `.ifcloud` and reusable systems/groups use `.ifgraph`.
+## Build and checks
 
-Read [the studio guide](docs/studio-guide.md). The earlier [inspection preview](docs/preview-0.1.md) is historical; the application now starts in the studio.
+Developers need the .NET 10 SDK and Inno Setup 6 to build Windows setup.
+End users receive private runtimes; no separate SDK or engine is needed.
 
-## Build and verification
-
-Requires the .NET 10 SDK on the build computer. Users receive the runtime bundled privately with the app.
-
-```powershell
+~~~powershell
 dotnet build src/Incranalytic.App -c Release
-dotnet run --project tests/Incranalytic.StudioTests
-dotnet run --project tests/Incranalytic.WorkspaceTests
-dotnet run --project tests/Incranalytic.DistributionTests
+dotnet build src/Incranalytic.Installer -c Release
+dotnet run --project tests/Incranalytic.StudioTests -c Release
+dotnet run --project tests/Incranalytic.WorkspaceTests -c Release
+dotnet run --project tests/Incranalytic.DistributionTests -c Release
 ./scripts/Build-Installer.ps1 -Compiler 'path/to/ISCC.exe' -IncludeTestInstaller
 ./scripts/Test-Installer.ps1
-```
+~~~
 
-The studio checks cover scientific arithmetic, selected precision, invalid input, deterministic updates, project round trips, IFCLOUD parsing/branches/short-circuit behavior, bounded execution, feedback, failed-tick atomicity, drafts, reusable systems, a 500-block chain and compilation/parity of generated C#9 using a Unity API stub. Installed-app checks exercise binding, canvas mouse gestures, simulation controls, rendering, undo, the index and embedded export runtimes. Installer checks use a separate test application identity to preserve an existing user installation. They cover registration, install, dependency retention, full removal and preservation of user projects on the current Windows host. A clean Windows VM and real Unity editor integration have not been tested.
-
-Inno Setup is a build tool, not an end-user dependency. This development installer uses the noncommercial compiler; obtain the appropriate Inno Setup license before commercial distribution. Installer and application are unsigned development builds.
-
-## Future ideas — brainstorming
-
-- Built-in Desmos Graphing Calculator integration.
-- User-created plugins.
-- Broader engine integrations and richer simulation workflows.
-
-These ideas are recorded for later investigation. Integration design, licensing, offline behavior, plugin permissions, and distribution details have not been selected. There is no committed implementation or release date for them.
-
-## Privacy and ownership
-
-Studio calculations and projects stay local. The studio has no telemetry or online AI provider. The optional Version Manager contacts GitHub for releases and installer files and optionally stores a repository token in Windows Credential Manager. Users can forget the token or remove it with the 0.4 uninstaller's preferences/cache cleanup option.
-
-Source licensing has not yet been selected. Preview terms are included in the installer and the Help menu. Legal review and release signing remain public-release tasks.
+Checks cover arithmetic, conditional execution, failed-tick atomicity, 500-block
+graphs, reusable systems, project saves, recovery, credentials/download integrity,
+installed UI flows, and install/uninstall preservation. Exported C# is compiled
+and compared with studio results using a Unity API stub. These checks are not an
+independent audit. Actual Unity editor integration and a clean Windows VM have
+not been tested. The unsigned installer uses Inno Setup; see its
+[licensing information](https://jrsoftware.org/isorder.php). Older releases and
+the [original inspection preview](docs/preview-0.1.md) are historical.
